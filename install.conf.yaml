@@ -1,3 +1,14 @@
-- clean: []
-- link: {}
-- shell: []
+- defaults:
+    link:
+      relink: true
+
+- clean: ['~']
+
+- link:
+    ~/.vimrc: vimrc
+    ~/.ideavimrc: ideavimrc
+    ~/.zshrc: zshrc
+    ~/.zshenv: zshenv
+
+- shell:
+  - [git submodule update --init --recursive, Installing submodules]
