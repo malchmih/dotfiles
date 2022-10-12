@@ -4,7 +4,7 @@ ZSH_THEME="awesomepanda"
 
 zstyle ':omz:update' mode auto      # update automatically without asking
 
-plugins=(brew common-aliases git vi-mode docker-compose)
+plugins=(brew common-aliases git vi-mode gradle)
 
 fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
 
