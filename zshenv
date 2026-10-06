@@ -1,11 +1,15 @@
-path+=('/Users/mmalchevskii/.local/bin')
+path+=("$HOME/.local/bin")
 
-alias up='bubu && mas upgrade && softwareupdate -i -a'
+if [[ "$OSTYPE" == darwin* ]]; then
+  alias up='bubu && mas upgrade && softwareupdate -i -a'
+elif [[ "$OSTYPE" == linux* ]] && [[ -r /etc/os-release ]] && grep -qE '^ID="?ubuntu"?$' /etc/os-release; then
+  alias up='bubu && aguu'
+else
+  alias up='echo "OS not supported"'
+fi
 
 alias j=just
-alias git-cleanup='git branch -vv | grep ': gone]' | grep -v '\*' | awk '{ print $1; }' | xargs -r git branch -d'
-
-alias approve_olga='zkubectl login fulfillment && zkubectl cluster-access approve olsemernitsk'
-alias approve_vadim='zkubectl login fulfillment && zkubectl cluster-access approve vturkov'
 
 alias restart-podman='podman machine stop && podman machine start'
+
+export UV_INDEX_ZALANDO_USERNAME=mmalchevskii
