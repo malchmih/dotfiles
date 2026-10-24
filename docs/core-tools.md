@@ -3,7 +3,8 @@
 `./setup-core` is the deliberate core installation action. It is **not** run by
 shell startup or `./install`. Recovery restores a useful core environment, not
 identical versions or the entire workstation. No task runner, container engine,
-language toolchain, GUI application, or optional shell enhancement is required.
+language toolchain, or GUI application is required. Shell enhancements are core
+selections but remain optional at startup if not yet installed.
 
 ## Bootstrap prerequisites
 
@@ -138,6 +139,9 @@ supported distribution, not necessarily upstream's latest release.
 | GitHub CLI / `gh` | Homebrew `gh`; `brew upgrade gh` | Homebrew `gh`; `brew upgrade gh` |
 | ripgrep / `rg` | Homebrew `ripgrep`; `brew upgrade ripgrep` | Homebrew `ripgrep`; `brew upgrade ripgrep` |
 | HTTPie / `http`, `https` | Homebrew `httpie`; `brew upgrade httpie` | Homebrew `httpie`; `brew upgrade httpie` |
+| fzf / `fzf` and OMZ integration | Homebrew `fzf`; `brew upgrade fzf` | Same Homebrew formula/update owner |
+| Inline autosuggestions | Homebrew `zsh-autosuggestions`; `brew upgrade zsh-autosuggestions` | Same Homebrew formula/update owner |
+| Syntax highlighting | Homebrew `zsh-syntax-highlighting`; `brew upgrade zsh-syntax-highlighting` | Same Homebrew formula/update owner |
 | Vim / `vim` | Homebrew `vim`; `brew upgrade vim` (Apple Vim remains available) | APT `vim`; distribution package maintenance |
 | Oh My Zsh | Upstream Git checkout; `omz update` in interactive Zsh | Same upstream checkout/updater |
 | Dotbot (configuration application only) | Committed submodule **1.24.0**; reviewed repository update | Same pinned submodule |
@@ -151,10 +155,12 @@ upgrades/reboots. Apple system Git/Zsh/Vim are owned by macOS/Command Line Tools
 updates, not Homebrew. Manager updates do not inherently upgrade all installed
 packages or language runtimes.
 
-The current shared Zsh configuration disables automatic Oh My Zsh updates; run
-`omz update` deliberately. Its automatic-update policy and separately packaged
-shell enhancements are follow-up work, not changed by this installer. The Oh My
-Zsh updater owns bundled plugins/themes, **not** third-party packages. Existing
+Shared Zsh enables Oh My Zsh's automatic updater (`mode auto`, upstream's normal
+cadence); `omz update` also requests an update explicitly. It owns bundled
+plugins/themes, **not** the Homebrew-packaged shell enhancements. Those follow
+the standalone freshness policy on Linux too, rather than older distribution
+plugin packages. See [interactive shell](interactive-shell.md) for loading order,
+bindings, and learning references. Existing
 `up` aliases can invoke broad application/OS upgrades; they are legacy
 conveniences, **not** the recovery/setup workflow. No scheduler is installed.
 
@@ -181,7 +187,7 @@ transitive libraries/codecs/certificates are intentionally omitted.
 | Media GUI | VLC; Homebrew cask on macOS or native Linux package/application channel. |
 | Desktop comfort | f.lux and Scroll Reverser; macOS casks. Not portable shell dependencies or Linux recovery requirements. |
 | AI assistants and coding clients | Existing OpenCode, Claude Code, and Copilot CLI/desktop clients are optional independent tools. Retain their existing Homebrew/cask or upstream owner; do not install competing copies. Authentication/subscriptions and their configurations are separate. |
-| IDEs and shell enhancements | JetBrains/IdeaVim are optional as described in the README. Autosuggestions, fzf, and highlighting are separate shell-enhancement work; none is silently added here. |
+| IDEs | JetBrains/IdeaVim are optional as described in the README. Autosuggestions, fzf, and highlighting are core selections above, not IDE dependencies. |
 
 Prefer one owner per executable. Use Homebrew formulae/casks for suitable macOS
 optional tools, APT/native application channels where Linux integration matters,

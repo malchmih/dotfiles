@@ -1,5 +1,6 @@
-# Optional machine-local interactive additions, loaded after shared setup.
+# Optional machine-local preferences, loaded after shared setup.
+# Syntax highlighting initializes afterward so it can see local widgets.
 # Example overrides (uncomment and adapt only if needed):
 # alias j='just --verbose'
-# bindkey -e
+# bindkey '^X^L' clear-screen
 # path=("$HOME/tools/bin" $path)

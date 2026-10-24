@@ -42,12 +42,22 @@ would need their own care. No custom preflight, transaction, or rollback layer i
 provided. Use `./install --help` for upstream options (including opt-in
 `--exit-on-failure`); ordinary application does not enable fail-fast behavior.
 
-Shared configuration works without local files, Oh My Zsh, or mise. Those
-integrations load only when already present. Startup does not install them,
-automatically update Oh My Zsh, or audit missing commands. Some convenience
+Shared configuration works without local files, Oh My Zsh, mise, or the shell
+enhancements. Integrations load only when already present. Startup does not
+install packages or audit missing commands. Oh My Zsh retains its automatic
+updater for its own checkout (not separately packaged plugins). Some convenience
 aliases still require their corresponding tools/plugins (`j` needs `just`,
 `restart-podman` needs Podman, and `up` needs the relevant package-manager aliases
-and tools). Installation and updates are separate, explicit operations.
+and tools). Package installation and updates are separate, explicit operations.
+
+## Interactive shell
+
+Keep Zsh, Oh My Zsh, and the **awesomepanda** prompt, with Emacs-style editing,
+inline history suggestions, fzf history/file/directory pickers, and syntax
+highlighting. `./setup-core` installs the three Homebrew-owned additions on both
+platforms; no extra plugin manager or font is needed. Start a fresh shell to
+apply changes. See [shell behavior, bindings, loading, and updates](docs/interactive-shell.md)
+for the quickstart and missing-component diagnostics.
 
 ## Optional development toolchains
 
@@ -107,7 +117,8 @@ This copies harmless commented examples into
   and `zsh -c`. Keep it quiet and fast; no interactive setup or credentials
   prompts. It runs after the shared environment defaults.
 - `interactive.zsh`: interactive aliases, bindings, tool initialization, and
-  overrides. It runs **last**, after shared aliases and optional integrations.
+  overrides. It is the **last preference phase**, after shared aliases and
+  integrations; syntax highlighting initializes afterward to see local widgets.
 
 Edit those external files incrementally; do not copy the shared startup files.
 For example, uncomment `export EDITOR=vi` in `env.zsh` for all new Zsh sessions,

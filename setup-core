@@ -23,10 +23,10 @@ case "${1:-}" in
 esac
 [[ $# -le 1 ]] || die 'Expected at most one option. Use --help.'
 
-brew_packages=(gh ripgrep httpie)
+brew_packages=(gh ripgrep httpie fzf zsh-autosuggestions zsh-syntax-highlighting)
 apt_packages=()
 case "$(uname -s)" in
-    Darwin) brew_packages=(zsh git gh ripgrep httpie vim) ;;
+    Darwin) brew_packages+=(zsh git vim) ;;
     Linux)
         [[ -r /etc/os-release ]] || die 'Cannot identify Linux; expected Ubuntu or Debian (/etc/os-release).'
         # shellcheck source=/dev/null
@@ -125,7 +125,15 @@ fi
 # Inspect the caller's PATH, not an internally repaired PATH that would hide a
 # problem when the next shell starts. This does not source user configuration.
 failed=0
-for tool in zsh git gh rg http vim; do
+for integration in zsh-autosuggestions/zsh-autosuggestions.zsh zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+    if [[ -r "$brew_prefix/share/$integration" ]]; then
+        printf 'Present (shell integration): %s\n' "$brew_prefix/share/$integration"
+    else
+        printf 'Missing shell integration: %s; inspect the Homebrew package and rerun setup.\n' "$brew_prefix/share/$integration" >&2
+        failed=1
+    fi
+done
+for tool in zsh git gh rg http vim fzf; do
     expected="$brew_prefix/bin/$tool"
     if [[ ${#apt_packages[@]} -gt 0 ]]; then
         case "$tool" in zsh|git|vim) expected="/usr/bin/$tool" ;; esac
