@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+# Explicit package installation, separate from Dotbot and shell startup.
+set -euo pipefail
+
+die() {
+    printf 'setup-core: %s\n' "$*" >&2
+    exit 1
+}
+
+mode=install
+case "${1:-}" in
+    '') ;;
+    --check) mode=check ;;
+    --help|-h)
+        printf '%s\n' 'Usage: ./setup-core [--check]' \
+            'Install missing core packages and Oh My Zsh; never switch the login shell.' \
+            '--check reports package ownership and command availability without installing.' \
+            'See docs/core-tools.md for prerequisites, sources, updates, and limitations.'
+        exit 0
+        ;;
+    *) die "Unknown option: $1. Use --help." ;;
+esac
+[[ $# -le 1 ]] || die 'Expected at most one option. Use --help.'
+
+brew_packages=(gh ripgrep httpie)
+apt_packages=()
+case "$(uname -s)" in
+    Darwin) brew_packages=(zsh git gh ripgrep httpie vim) ;;
+    Linux)
+        [[ -r /etc/os-release ]] || die 'Cannot identify Linux; expected Ubuntu or Debian (/etc/os-release).'
+        # shellcheck source=/dev/null
+        . /etc/os-release
+        case "${ID:-}" in
+            ubuntu|debian) apt_packages=(zsh git vim) ;;
+            *) die 'Only Ubuntu/Debian desktop or WSL Linux is supported; no Arch/Manjaro or native Windows setup.' ;;
+        esac
+        if ! command -v apt-get >/dev/null || ! command -v dpkg-query >/dev/null; then
+            die 'APT and dpkg-query are required. See docs/core-tools.md.'
+        fi
+        ;;
+    *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported (not native Windows).'
+        ;;
+esac
+
+[[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo; only APT installation uses sudo.'
+command -v brew >/dev/null ||
+    die 'Homebrew is required on PATH. Install it manually and follow its shellenv instructions; see docs/core-tools.md.'
+brew_prefix="$(brew --prefix)"
+
+# Disable implicit manager refresh, cleanup, and unrelated formula upgrades.
+# Refresh definitions deliberately with brew update before a fresh recovery.
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+
+missing=0
+apt_missing=()
+# Bash 3.2 (macOS) treats expansion of an empty array as unset under nounset.
+if [[ ${#apt_packages[@]} -gt 0 ]]; then
+    for package in "${apt_packages[@]}"; do
+        if [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" == 'install ok installed' ]]; then
+            printf 'Present (APT): %s\n' "$package"
+        else
+            printf 'Missing (APT): %s\n' "$package"
+            apt_missing+=("$package")
+            missing=1
+        fi
+    done
+fi
+if [[ $mode == install && ${#apt_missing[@]} -gt 0 ]]; then
+    command -v sudo >/dev/null || die 'sudo is required to install APT packages; ask an administrator to install the listed packages.'
+    sudo apt-get update || die 'APT index refresh failed; check networking and configured repositories, then rerun.'
+    sudo apt-get install --no-upgrade --no-remove "${apt_missing[@]}" ||
+        die 'APT installation failed; check package availability for your supported distribution release, then rerun.'
+fi
+
+brew_missing=()
+for package in "${brew_packages[@]}"; do
+    if brew list --formula --versions "$package" >/dev/null 2>&1; then
+        printf 'Present (Homebrew): %s\n' "$package"
+    else
+        printf 'Missing (Homebrew): %s\n' "$package"
+        brew_missing+=("$package")
+        missing=1
+    fi
+done
+if [[ $mode == install ]]; then
+    if [[ ${#brew_missing[@]} -gt 0 ]]; then
+        brew install --formula "${brew_missing[@]}" ||
+            die 'Homebrew installation failed; inspect its error, run brew doctor (or deliberately brew update for stale definitions), then rerun.'
+    fi
+    # In particular, retain ripgrep if it arrived as another tool's dependency.
+    brew tab --installed-on-request --formula "${brew_packages[@]}" ||
+        die 'Could not record explicit core ownership; check brew help tab and update Homebrew deliberately if necessary.'
+fi
+
+omz_dir="${ZSH:-$HOME/.oh-my-zsh}"
+if [[ -r "$omz_dir/oh-my-zsh.sh" ]]; then
+    printf 'Present (Oh My Zsh): %s\n' "$omz_dir"
+elif [[ -e "$omz_dir" || -L "$omz_dir" ]]; then
+    die "Existing Oh My Zsh path is incomplete or unreadable: $omz_dir. Inspect it yourself; it will not be replaced."
+elif [[ $mode == install ]]; then
+    command -v git >/dev/null || die 'Git must be on PATH to clone Oh My Zsh.'
+    # Only clone: no upstream installer, template copy, shell change, or shell launch.
+    git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$omz_dir" ||
+        die "Oh My Zsh clone failed. Inspect $omz_dir before retrying; existing paths are never removed."
+    [[ -r "$omz_dir/oh-my-zsh.sh" ]] || die "Oh My Zsh entry point is missing in $omz_dir."
+else
+    printf 'Missing (Oh My Zsh): %s\n' "$omz_dir"
+    missing=1
+fi
+
+# Inspect the caller's PATH, not an internally repaired PATH that would hide a
+# problem when the next shell starts. This does not source user configuration.
+failed=0
+for tool in zsh git gh rg http vim; do
+    expected="$brew_prefix/bin/$tool"
+    if [[ ${#apt_packages[@]} -gt 0 ]]; then
+        case "$tool" in zsh|git|vim) expected="/usr/bin/$tool" ;; esac
+    fi
+    actual="$(command -v "$tool" || true)"
+    printf '%s: %s (selected: %s)\n' "$tool" "${actual:-not on PATH}" "$expected"
+    # -ef accepts equivalent paths/symlinks, including merged-/usr systems.
+    if [[ -z "$actual" || ! "$actual" -ef "$expected" ]]; then
+        printf 'Fix PATH/competing ownership for %s; see docs/core-tools.md.\n' "$tool" >&2
+        failed=1
+    elif ! "$actual" --version; then
+        printf 'Version check failed: %s\n' "$actual" >&2
+        failed=1
+    fi
+done
+[[ $mode != check || $missing -eq 0 ]] || die 'Core components are missing. Run ./setup-core after resolving the prerequisites above.'
+[[ $failed -eq 0 ]] || die 'Core command checks failed. Fix the reported PATH or installation problem and rerun --check.'
+printf '%s\n' 'Core tools checked. Configuration: ./install. Login shell: unchanged.'

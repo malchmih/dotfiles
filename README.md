@@ -4,17 +4,30 @@ Shared Zsh, Vim, and IdeaVim preferences, applied with
 [Dotbot](https://github.com/anishathalye/dotbot). Machine-specific and private
 settings belong outside this checkout.
 
-## Fresh setup
+## Core recovery
 
-Install Git, Zsh, Vim, and a Python version supported by Dotbot (Python 3
-recommended) using your platform's package manager, then:
+Target macOS and Ubuntu/Debian desktop or WSL Linux, not native Windows or
+Arch/Manjaro. First follow the [bootstrap prerequisites](docs/core-tools.md#bootstrap-prerequisites)
+for Git, Bash, Python 3, and Homebrew; cloning and Dotbot need prerequisites
+before configuration can be applied. Then:
 
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
 cd dotfiles
+brew update                 # refresh package definitions, not installed software
+./setup-core                # explicitly install missing core tools and Oh My Zsh
+./setup-core --check         # package ownership, command paths, and versions
 ./install --dry-run
 ./install
 ```
+
+**Install tools**, **apply configuration**, and **change the account shell** are
+separate actions. Neither command changes the login shell. See the
+[core-tool workflow](docs/core-tools.md) for tool-by-tool sources/update owners,
+repeat-run behavior, PATH troubleshooting, deliberate `chsh`, platform limits,
+and the curated optional CLI/media/GUI inventory. After opening a fresh terminal,
+repeat `./setup-core --check`. Optional applications, container engines, task
+runners, and language runtimes are not part of core provisioning.
 
 The bootstrap initializes the pinned Dotbot submodule itself; a recursive clone
 is unnecessary. Application is best-effort: a failed link does not prevent other
@@ -120,7 +133,9 @@ environment automatically; GUI launchers may not start Zsh at all.
 
 The shared environment prepends `$HOME/.local/bin` and deduplicates `path`/`PATH`
 while keeping the first occurrence. `.zprofile` restores that precedence after
-macOS's system login setup (`path_helper`) reorders PATH. Put general additional
+macOS's system login setup (`path_helper`) reorders PATH, with the selected
+Homebrew tools next (recognizing `/opt/homebrew`, then `/usr/local`, when `brew`
+exists there). Put general additional
 directories in local `env.zsh`, usually with `path+=("/some/bin")`. A prepend there
 can precede `.local/bin` in non-login shells, but login setup restores
 `.local/bin` first. Put final interactive precedence overrides in local
