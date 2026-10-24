@@ -25,7 +25,8 @@ Before cloning this repository:
   (normally via `sudo`). These bootstrap packages provide cloning, Dotbot's
   Python, HTTPS trust, and Homebrew's native build prerequisites. Then install
   [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux) as your ordinary user.
-  The setup command needs sudo only if APT-owned core packages are missing.
+  The setup command needs sudo only if APT-owned core packages are missing or
+  existing core packages need to be marked as manually installed.
 - **Both:** put Homebrew on the current shell's PATH using the installer's
   printed `eval "$(.../bin/brew shellenv)"` command. The usual prefixes are
   `/opt/homebrew` (Apple Silicon), `/usr/local` (Intel Mac), and
@@ -59,7 +60,8 @@ brew update                 # deliberately refresh definitions, not package upgr
 Bootstrap needs Git before setup can install the selected Git. Setup explicitly
 lists all core packages even if they were once installed as dependencies. It
 keeps installed selected packages, marks Homebrew core formulae as requested
-(protecting them from autoremove), installs only missing ones, and never runs a
+and existing automatic APT core packages as manually installed (protecting both
+from autoremove), installs only missing ones, and never runs a
 broad upgrade or cleanup. APT refreshes indexes only when packages are missing;
 `--no-upgrade --no-remove` protects already-installed packages from upgrades and
 removals. Homebrew auto-refresh and installed-dependent checks are disabled for

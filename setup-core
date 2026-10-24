@@ -35,15 +35,15 @@ case "$(uname -s)" in
             ubuntu|debian) apt_packages=(zsh git vim) ;;
             *) die 'Only Ubuntu/Debian desktop or WSL Linux is supported; no Arch/Manjaro or native Windows setup.' ;;
         esac
-        if ! command -v apt-get >/dev/null || ! command -v dpkg-query >/dev/null; then
-            die 'APT and dpkg-query are required. See docs/core-tools.md.'
+        if ! command -v apt-get >/dev/null || ! command -v apt-mark >/dev/null || ! command -v dpkg-query >/dev/null; then
+            die 'APT, apt-mark, and dpkg-query are required. See docs/core-tools.md.'
         fi
         ;;
     *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported (not native Windows).'
         ;;
 esac
 
-[[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo; only APT installation uses sudo.'
+[[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo; only APT operations use sudo.'
 command -v brew >/dev/null ||
     die 'Homebrew is required on PATH. Install it manually and follow its shellenv instructions; see docs/core-tools.md.'
 brew_prefix="$(brew --prefix)"
@@ -56,17 +56,28 @@ export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
 missing=0
 apt_missing=()
+apt_automatic=()
 # Bash 3.2 (macOS) treats expansion of an empty array as unset under nounset.
 if [[ ${#apt_packages[@]} -gt 0 ]]; then
     for package in "${apt_packages[@]}"; do
         if [[ "$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)" == 'install ok installed' ]]; then
             printf 'Present (APT): %s\n' "$package"
+            automatic="$(apt-mark showauto "$package")" || die "Could not inspect APT ownership for $package."
+            if [[ "$automatic" == "$package" ]]; then
+                printf 'Needs explicit retention (APT): %s\n' "$package"
+                apt_automatic+=("$package")
+                missing=1
+            fi
         else
             printf 'Missing (APT): %s\n' "$package"
             apt_missing+=("$package")
             missing=1
         fi
     done
+fi
+if [[ $mode == install && ${#apt_automatic[@]} -gt 0 ]]; then
+    command -v sudo >/dev/null || die 'sudo is required to mark existing APT core tools as manually installed.'
+    sudo apt-mark manual "${apt_automatic[@]}" || die 'Could not mark APT core tools as manually installed; inspect the APT error and rerun.'
 fi
 if [[ $mode == install && ${#apt_missing[@]} -gt 0 ]]; then
     command -v sudo >/dev/null || die 'sudo is required to install APT packages; ask an administrator to install the listed packages.'
@@ -130,6 +141,6 @@ for tool in zsh git gh rg http vim; do
         failed=1
     fi
 done
-[[ $mode != check || $missing -eq 0 ]] || die 'Core components are missing. Run ./setup-core after resolving the prerequisites above.'
+[[ $mode != check || $missing -eq 0 ]] || die 'Core setup is incomplete. Run ./setup-core after resolving the prerequisites above.'
 [[ $failed -eq 0 ]] || die 'Core command checks failed. Fix the reported PATH or installation problem and rerun --check.'
 printf '%s\n' 'Core tools checked. Configuration: ./install. Login shell: unchanged.'
