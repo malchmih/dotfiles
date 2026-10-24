@@ -80,9 +80,13 @@ should resolve first. No enhanced tool is aliased over `grep`, `find`, `cat`, or
 other familiar commands: use `rg` and `http` explicitly.
 
 After applying configuration, open a new terminal and repeat `./setup-core
---check`. Preserve Homebrew PATH setup outside the shared checkout: use
-`./scaffold-local`, then add its `bin` and `sbin` directories to `path` in local
-`env.zsh` for noninteractive access. For example, on Apple Silicon:
+--check`. On Linux, shared `.zshenv` recognizes the standard
+`/home/linuxbrew/.linuxbrew` prefix when `bin/brew` is executable; its bin/sbin
+follow `.local/bin` in every Zsh, including noninteractive shells. Before links
+are applied, use the installer's shellenv instructions for the current shell.
+For custom prefixes or noninteractive macOS access, preserve Homebrew PATH setup
+outside the shared checkout: use `./scaffold-local`, then add its `bin` and `sbin`
+directories to `path` in local `env.zsh`. For example, on Apple Silicon:
 
 ```zsh
 path=("$HOME/.local/bin" /opt/homebrew/bin /opt/homebrew/sbin $path)

@@ -172,7 +172,10 @@ source these files. These files do **not** configure every GUI application's
 environment automatically; GUI launchers may not start Zsh at all.
 
 The shared environment prepends `$HOME/.local/bin` and deduplicates `path`/`PATH`
-while keeping the first occurrence. `.zprofile` restores that precedence after
+while keeping the first occurrence. On Linux, it also recognizes the standard
+`/home/linuxbrew/.linuxbrew` prefix when its `bin/brew` is executable, putting
+its bin/sbin after `.local/bin` in every Zsh, including noninteractive sessions.
+`.zprofile` restores user-command precedence after
 macOS's system login setup (`path_helper`) reorders PATH, with the selected
 Homebrew tools next (recognizing `/opt/homebrew`, then `/usr/local`, when `brew`
 exists there). Put general additional
