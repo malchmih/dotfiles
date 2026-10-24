@@ -18,3 +18,6 @@ _Avoid_: All configuration
 
 **Local configuration**:
 Optional machine-specific or non-public additions outside the shared configuration. Its preservation is not part of the baseline recovery expectation.
+
+**Checkup**:
+An evidence-based assessment of the current machine's software and setup, covering correctness, improvement opportunities, core candidates, and cleanup candidates. Its outcome is advice, not changes to the environment.
