@@ -4,13 +4,11 @@
 alias j=just
 alias restart-podman='podman machine stop && podman machine start'
 
-if [[ "$OSTYPE" == darwin* ]]; then
-  alias up='bubu && mas upgrade && softwareupdate -i -a'
-elif [[ "$OSTYPE" == linux* ]] && [[ -r /etc/os-release ]] && grep -qE '^ID="?ubuntu"?$' /etc/os-release; then
-  alias up='bubu && aguu'
-else
-  alias up='echo "OS not supported"'
-fi
+# Retire the mixed-scope alias without silently turning muscle memory into upgrades.
+up() {
+  print -u2 -- 'up is retired. From the dotfiles checkout, use ./update-tools or ./update-system --help; see docs/maintenance.md.'
+  return 1
+}
 
 # Keep a usable base shell even without Oh My Zsh or its plugins.
 bindkey -e

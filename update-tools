@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Deliberate, unprivileged maintenance; never called during startup or setup.
+set -uo pipefail
+
+die() {
+    printf 'update-tools: %s\n' "$*" >&2
+    exit 1
+}
+
+case "${1:-}" in
+    --help|-h|'')
+        printf '%s\n' 'Usage: ./update-tools refresh|upgrade' \
+            'refresh: refresh Homebrew definitions and Homebrew itself; no package upgrades.' \
+            'upgrade: ALL installed Homebrew formulae, uv tools, and pipx apps on PATH.' \
+            'Includes optional/work inventories, not just repository-selected tools.' \
+            'No sudo, casks, App Store, OS, runtime selection, or project updates.' \
+            'Missing managers are skipped; independent failures are reported, not rolled back.' \
+            'Read docs/maintenance.md before deliberate use.'
+        exit 0
+        ;;
+    refresh|upgrade) action="$1" ;;
+    *) die "Unknown action: $1. Use --help." ;;
+esac
+[[ $# -eq 1 ]] || die 'Expected one action. Use --help.'
+[[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo.'
+case "$(uname -s)" in
+    Darwin) ;;
+    Linux)
+        [[ -r /etc/os-release ]] || die 'Cannot identify Linux; expected Ubuntu or Debian.'
+        # shellcheck source=/dev/null
+        . /etc/os-release
+        case "${ID:-}" in
+            ubuntu|debian) ;;
+            *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
+        esac
+        ;;
+    *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
+esac
+
+# Keep metadata refresh and cleanup separate from this explicit upgrade action.
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+failed=0
+if command -v brew >/dev/null; then
+    if [[ $action == refresh ]]; then
+        printf '%s\n' 'Homebrew: refreshing definitions/taps and Homebrew itself (not installed packages).'
+        brew update || { printf '%s\n' 'FAILED: Homebrew refresh.' >&2; failed=1; }
+    else
+        printf '%s\n' 'Homebrew: upgrading ALL installed formulae, including optional/work tools and managers (not casks).'
+        brew upgrade --formula || { printf '%s\n' 'FAILED: Homebrew formula upgrades; continuing with independent managers.' >&2; failed=1; }
+    fi
+else
+    printf '%s\n' 'SKIP: Homebrew not on PATH.'
+fi
+
+if [[ $action == upgrade ]]; then
+    if command -v uv >/dev/null; then
+        printf '%s\n' 'uv: upgrading ALL installed uv tool environments, not uv itself or project dependencies.'
+        uv tool upgrade --all || { printf '%s\n' 'FAILED: uv tool upgrades; continuing with pipx.' >&2; failed=1; }
+    else
+        printf '%s\n' 'SKIP: optional uv not on PATH.'
+    fi
+    if command -v pipx >/dev/null; then
+        printf '%s\n' 'pipx: upgrading ALL existing pipx-owned apps in place; no migration to uv.'
+        pipx upgrade-all || { printf '%s\n' 'FAILED: pipx app upgrades.' >&2; failed=1; }
+    else
+        printf '%s\n' 'SKIP: optional pipx not on PATH.'
+    fi
+    printf '%s\n' 'OMZ retains its native automatic updater; manual: omz update in interactive Zsh.' \
+        'No mise/uv runtime selection requested: use ./setup-toolchains deliberately for personal Node/JDK defaults.'
+fi
+[[ $failed -eq 0 ]] || die 'One or more managers failed. Earlier changes remain; inspect errors before retrying.'
+printf '%s\n' 'Requested user-tool maintenance finished for available managers; OS/native maintenance was not invoked.'

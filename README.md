@@ -46,9 +46,9 @@ Shared configuration works without local files, Oh My Zsh, mise, or the shell
 enhancements. Integrations load only when already present. Startup does not
 install packages or audit missing commands. Oh My Zsh retains its automatic
 updater for its own checkout (not separately packaged plugins). Some convenience
-aliases still require their corresponding tools/plugins (`j` needs `just`,
-`restart-podman` needs Podman, and `up` needs the relevant package-manager aliases
-and tools). Package installation and updates are separate, explicit operations.
+aliases still require their corresponding tools (`j` needs `just` and
+`restart-podman` needs Podman). Package installation and updates are separate,
+explicit operations; the mixed-scope `up` alias is retired.
 
 ## Interactive shell
 
@@ -71,6 +71,22 @@ and runtime data remain. Existing pipx-owned applications are not migrated.
 See [toolchain setup and routine use](docs/toolchains.md) for project trust,
 Gradle Wrappers/JDK compatibility, noninteractive and IDE use, update scopes,
 Python tooling ownership, transition checks, and platform boundaries.
+
+## Maintenance
+
+From this checkout, use `./update-tools refresh` then deliberately
+`./update-tools upgrade` for **all installed Homebrew formulae, uv tools, and
+pipx apps**, including optional/work inventory—not just the recovery selections.
+Missing managers are skipped; failures are reported with partial progress kept.
+OMZ retains its native automatic updater. Runtime selection, project dependency
+changes, casks, and App Store apps are separate actions.
+
+OS/native maintenance requires its own explicit `./update-system refresh` and
+`./update-system upgrade` (on macOS, supply one reviewed update label). APT uses
+sudo and covers native user tools as well as system packages; ordinary Homebrew
+maintenance does not. No release upgrade or reboot is requested. Read
+[maintenance scopes, commands, privileges, troubleshooting, and optional future
+scheduling](docs/maintenance.md) before using these broad upgrade actions.
 
 ## Editors
 

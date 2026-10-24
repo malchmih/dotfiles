@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Native package/OS maintenance is a separate explicit privileged action.
+set -euo pipefail
+
+die() {
+    printf 'update-system: %s\n' "$*" >&2
+    exit 1
+}
+
+case "${1:-}" in
+    --help|-h|'')
+        printf '%s\n' 'Usage: ./update-system refresh|upgrade [macOS-update-label]' \
+            'macOS: refresh lists Apple updates; upgrade requires one exact reviewed update label.' \
+            'Ubuntu/Debian/WSL: refresh APT indexes; upgrade ALL native packages with --no-remove.' \
+            'Upgrade uses sudo; APT refresh also uses sudo. No release upgrade or reboot is requested.' \
+            'No Homebrew, App Store, runtime, or Windows-host maintenance.' \
+            'Read docs/maintenance.md for privileges, label selection, and platform limitations.'
+        exit 0
+        ;;
+    refresh|upgrade) action="$1" ;;
+    *) die "Unknown action: $1. Use --help." ;;
+esac
+[[ $# -le 2 ]] || die 'Too many arguments. Use --help.'
+[[ $EUID -ne 0 ]] || die 'Run as your ordinary user; the command invokes sudo only for native maintenance.'
+
+case "$(uname -s)" in
+    Darwin)
+        command -v softwareupdate >/dev/null || die 'Apple softwareupdate is not on PATH.'
+        if [[ $action == refresh ]]; then
+            [[ $# -eq 1 ]] || die 'refresh takes no update label.'
+            printf '%s\n' 'Apple: scanning/listing available updates; no installation.'
+            softwareupdate --list || die 'Apple update scan failed; inspect networking and device-management policy.'
+        else
+            [[ $# -eq 2 && -n "$2" && "$2" != -* ]] ||
+                die 'macOS upgrade requires one exact label from refresh. Review its version; do not select a major-release upgrade.'
+            command -v sudo >/dev/null || die 'sudo is required for native maintenance.'
+            printf 'Apple: installing only the reviewed label: %s (sudo; no --restart).\n' "$2"
+            sudo softwareupdate --install "$2" || die 'Apple update failed; inspect authentication/policy errors or use System Settings.'
+        fi
+        ;;
+    Linux)
+        [[ $# -eq 1 ]] || die 'Linux maintenance takes no update label.'
+        [[ -r /etc/os-release ]] || die 'Cannot identify Linux; expected Ubuntu or Debian.'
+        # shellcheck source=/dev/null
+        . /etc/os-release
+        case "${ID:-}" in
+            ubuntu|debian) ;;
+            *) die 'Only Ubuntu/Debian desktop or WSL Linux is supported.' ;;
+        esac
+        command -v apt-get >/dev/null || die 'APT is required for native package maintenance.'
+        command -v sudo >/dev/null || die 'sudo is required for native maintenance.'
+        if [[ $action == refresh ]]; then
+            printf '%s\n' 'APT: refreshing configured repository indexes (sudo), not installed packages.'
+            sudo apt-get update || die 'APT refresh failed; inspect networking, repositories, and package-manager locks.'
+        else
+            printf '%s\n' 'APT: upgrading ALL native packages, including Zsh/Git/Vim (sudo; --no-remove; no -y).' \
+                'Review the APT proposal. No full-upgrade, release upgrade, autoremove, or reboot is requested.'
+            sudo apt-get upgrade --no-remove || die 'APT upgrade failed; inspect native errors/held packages. Earlier changes remain.'
+        fi
+        ;;
+    *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
+esac
+printf '%s\n' 'Requested native maintenance finished. Any required restart remains a separate human decision.'

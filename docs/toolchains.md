@@ -189,6 +189,12 @@ OS/Homebrew-owned; uv does not replace the distribution's Python.
   and pipx-owned app upgrades are distinct deliberate operations, not manager
   updates. No scheduled/background upgrades are configured by this workflow.
 
+The separate [maintenance workflow](maintenance.md) provides `./update-tools
+refresh|upgrade`: all installed Homebrew formulae (including managers), uv tool
+environments, and pipx apps, not only the core inventory. It does not reselect
+mise runtimes, upgrade uv-managed Python, rewrite project declarations, or revive
+NVM/SDKMAN. Use the explicit runtime actions above when intended.
+
 ## Verification boundaries
 
 Use `bash -n setup-toolchains`, `zsh -n zshrc`, setup's version checks, and

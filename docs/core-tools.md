@@ -160,9 +160,11 @@ cadence); `omz update` also requests an update explicitly. It owns bundled
 plugins/themes, **not** the Homebrew-packaged shell enhancements. Those follow
 the standalone freshness policy on Linux too, rather than older distribution
 plugin packages. See [interactive shell](interactive-shell.md) for loading order,
-bindings, and learning references. Existing
-`up` aliases can invoke broad application/OS upgrades; they are legacy
-conveniences, **not** the recovery/setup workflow. No scheduler is installed.
+bindings, and learning references. The mixed-scope `up` alias is retired and
+now refuses with guidance. Use the separate [user-tool and native maintenance
+commands](maintenance.md) for deliberate updates, including whole-inventory
+scope, cask/App Store exceptions, privileges, and runtime boundaries. No
+scheduler is installed.
 
 Start learning ripgrep with `rg --help` and
 [ripgrep's guide](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md).
