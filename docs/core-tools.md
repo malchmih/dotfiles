@@ -66,7 +66,7 @@ libraries/codecs/certificates are intentionally omitted.
 | Other CLI/developer utilities | `shellcheck`, `mas` (Mac App Store helper, macOS only), and `just` if its alias is useful. Homebrew for standalone utilities. |
 | Media CLI | `ffmpeg`, `yt-dlp` through Homebrew; codec libraries are their dependencies, not recovery selections. |
 | Containers | Podman or Docker only when needed; inspect existing engine/VM ownership first. A Homebrew Docker CLI alone is **not** a working daemon. Desktop/VM/WSL engine setup is separate and manual. Do not install both merely because aliases exist. |
-| Language and Python tooling | Deno, pipx, Homebrew Python, NVM, SDKMAN, and standalone Gradle are optional. Keep existing owners/data. The separate [opt-in toolchain workflow](toolchains.md) installs mise/uv and selects Node/Java, without deleting legacy selectors/data. Prefer uv for future Python tooling without duplicating pipx-owned commands, and project Gradle Wrappers. |
+| Language and Python tooling | Deno, pipx, Homebrew Python, and standalone Gradle are optional. Keep existing owners/data. The separate [opt-in toolchain workflow](toolchains.md) installs mise/uv and selects Node/Java. Prefer uv for future Python tooling without duplicating pipx-owned commands, and project Gradle Wrappers. |
 | API GUI | Bruno, installed/updated manually through Homebrew cask on macOS or its supported Linux distribution channel. Not needed for HTTPie. |
 | Media GUI | VLC; Homebrew cask on macOS or native Linux package/application channel. |
 | Desktop comfort | f.lux and Scroll Reverser; macOS casks. Not portable shell dependencies or Linux recovery requirements. |

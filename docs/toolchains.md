@@ -96,13 +96,9 @@ mise use --pin node@24 java@temurin-21
 The example is a project compatibility choice, not the personal freshness policy.
 A broad request like `node@24`, `node@latest`, or `java@temurin` is a resolution
 rule, not a background upgrade job. Pins/lockfiles improve reproducibility;
-updating them is a separate project decision. Legacy `.nvmrc`, `.node-version`,
-`.java-version`, or `.sdkmanrc` files are not automatically enabled by this setup.
-Review their requirements and either declare them intentionally in project mise
-config or opt into mise's documented idiomatic version-file support. Do not
-assume a legacy file silently overrides the personal default.
+updating them is a separate project decision.
 
-## Shell transition and absent-manager fallback
+## Shell activation and absent-manager fallback
 
 Shared interactive Zsh activates mise only when its executable is on PATH,
 after Oh My Zsh and before local `interactive.zsh`. It exports
@@ -114,22 +110,13 @@ Use `mise install` explicitly for missing project versions. Do not add lazy
 first-use declarations if you want installation to stay explicit.
 
 With no mise, shared startup skips activation quietly; system/user commands and
-both optional local files still work. It does **not** reactivate NVM or SDKMAN as
-a fallback. Their old directories, installed versions, candidates, and caches
-are preserved, but shared startup no longer sources `nvm.sh`, NVM completion,
-or `sdkman-init.sh`. A global SDKMAN Gradle may therefore cease to be on PATH;
-use the project wrapper instead. Nothing deletes or migrates its files.
+both optional local files still work.
 
-Before switching, inspect local `env.zsh`/`interactive.zsh` and other launcher
-configuration for NVM/SDKMAN initialization or fixed Node/Java PATH and
-`JAVA_HOME` exports. Retire competing selector lines deliberately, preserving
-unrelated/private settings. Local interactive overrides run last and can defeat
-mise if they reactivate a legacy manager. Start a **fresh terminal from a clean
-launcher environment**: replacing an already activated shell can inherit old
-PATH/variables/functions. Inspect `type -a node java`, `mise which node`,
+Local interactive overrides run last and can override mise's PATH or `JAVA_HOME`.
+Start a **fresh terminal** after changing shell configuration. Inspect
+`type -a node java`, `mise which node`,
 `mise which java`, and `print -r -- "$JAVA_HOME"`; compare inside/outside a
 reviewed project. Existing shells keep their previous environment until replaced.
-Do not delete old runtimes merely to tidy up this transition.
 
 ## Scripts, IDEs, and Gradle
 
@@ -192,8 +179,8 @@ OS/Homebrew-owned; uv does not replace the distribution's Python.
   and pipx-owned app upgrades are distinct deliberate operations, not manager
   updates. No scheduled/background upgrades are configured by this workflow.
 
-The separate [maintenance workflow](maintenance.md) provides `./update-tools
+The separate [maintenance workflow](maintenance.md) provides `update-tools
 refresh|upgrade`: all installed Homebrew formulae (including managers), uv tool
 environments, and pipx apps, not only the core inventory. It does not reselect
-mise runtimes, upgrade uv-managed Python, rewrite project declarations, or revive
-NVM/SDKMAN. Use the explicit runtime actions above when intended.
+mise runtimes, upgrade uv-managed Python, or rewrite project declarations.
+Use the explicit runtime actions above when intended.

@@ -106,6 +106,8 @@ dependencies itself; a recursive clone is unnecessary. Dotbot links:
 | `zshrc` | `~/.zshrc` |
 | `vimrc` | `~/.vimrc` |
 | `ideavimrc` | `~/.ideavimrc` |
+| `update-tools` | `~/.local/bin/update-tools` |
+| `update-system` | `~/.local/bin/update-system` |
 | `opencode/AGENTS.md` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md` |
 | `opencode/cli.json` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/cli.json` |
 
@@ -113,6 +115,13 @@ The `install` wrapper supplies the default `XDG_CONFIG_HOME` for Dotbot; export
 it before invoking `./install` to use a different config directory. OpenCode
 links create their parent directories even if the optional client is absent.
 See [OpenCode preferences](opencode.md) for scope and application-written edits.
+
+The maintenance links also create their parent directory when needed. The shared
+Zsh configuration puts `~/.local/bin` on PATH, making `update-tools` and
+`update-system` available from any directory. Setup/recovery helpers remain
+checkout-local; the checkout is not added wholesale to PATH (in particular,
+`./install` must not shadow the system `install` command). Linking the maintenance
+commands does not run them; see [maintenance](maintenance.md) before use.
 
 Existing links can be relinked; conflicting regular files are **not** forcibly
 replaced. Inspect and preserve their contents, moving them aside deliberately

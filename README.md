@@ -37,6 +37,9 @@ terminal does not already start Zsh; changing the account shell is a
   submodule before forwarding upstream options.
 - **Startup does not install anything.** Missing optional integrations are
   skipped; shared configuration works without local files or Oh My Zsh.
+- **Maintenance commands work from any directory.** `./install` links
+  `update-tools` and `update-system` into `~/.local/bin`, on the configured Zsh
+  PATH. Setup/recovery helpers stay checkout-local; linking does not run updates.
 
 See [recovery and configuration deployment](docs/recovery.md) for repeat-run
 behavior, conflicts, diagnostics, and Dotbot updates.

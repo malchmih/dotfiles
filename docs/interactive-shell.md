@@ -82,7 +82,7 @@ Setup only installs missing packages; it does not upgrade these on repeat runs.
 No broad OS/package upgrade is needed to try the features. See the
 [source/update-owner table](core-tools.md#selected-sources-and-update-owners).
 For deliberate whole-inventory user-tool upgrades, see the separate
-[maintenance commands](maintenance.md); `up` no longer mixes user and OS updates.
+[maintenance commands](maintenance.md).
 
 With OMZ present, its normal history settings remain untouched: default
 `~/.zsh_history`, minimum `HISTSIZE=50000` / `SAVEHIST=10000`, extended timestamps,

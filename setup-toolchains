@@ -14,7 +14,7 @@ case "${1:-}" in
         printf '%s\n' 'Usage: ./setup-toolchains' \
             'Install missing Homebrew mise/uv; select newest-stable personal Node/Temurin JDK defaults.' \
             'Rerunning deliberately reselects current stable defaults; projects are not edited.' \
-            'See docs/toolchains.md for ownership, trust, migration, and verification.'
+            'See docs/toolchains.md for ownership, trust, and verification.'
         exit 0
         ;;
     *) die "Unknown option: $1. Use --help." ;;
@@ -87,4 +87,4 @@ MISE_AUTO_INSTALL=false "$mise" exec -- java -version
 MISE_AUTO_INSTALL=false "$mise" exec -- javac -version
 "$brew_prefix/bin/uv" --version
 printf '%s\n' 'Personal defaults selected. Apply shared configuration with ./install from the checkout, then open a fresh terminal.' \
-    'NVM/SDKMAN data and pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'
+    'Existing pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'

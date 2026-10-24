@@ -10,12 +10,12 @@ die() {
 
 case "${1:-}" in
     --help|-h|'')
-        printf '%s\n' 'Usage: ./update-system refresh|upgrade [macOS-update-label]' \
+        printf '%s\n' 'Usage: update-system refresh|upgrade [macOS-update-label]' \
             'macOS: refresh lists Apple updates; upgrade requires one exact reviewed update label.' \
             'Ubuntu/Debian/WSL: refresh APT indexes; upgrade ALL native packages with --no-remove.' \
             'Upgrade uses sudo; APT refresh also uses sudo. No release upgrade or reboot is requested.' \
             'No Homebrew, App Store, runtime, or Windows-host maintenance.' \
-            'Read docs/maintenance.md for privileges, label selection, and platform limitations.'
+            'Read docs/maintenance.md in the dotfiles checkout for privileges, label selection, and platform limitations.'
         exit 0
         ;;
     refresh|upgrade) action="$1" ;;

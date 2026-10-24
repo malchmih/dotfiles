@@ -10,13 +10,13 @@ die() {
 
 case "${1:-}" in
     --help|-h|'')
-        printf '%s\n' 'Usage: ./update-tools refresh|upgrade' \
+        printf '%s\n' 'Usage: update-tools refresh|upgrade' \
             'refresh: refresh Homebrew definitions and Homebrew itself; no package upgrades.' \
             'upgrade: ALL installed Homebrew formulae, uv tools, and pipx apps on PATH.' \
             'Includes optional/work inventories, not just repository-selected tools.' \
             'No sudo, casks, App Store, OS, runtime selection, or project updates.' \
             'Missing managers are skipped; independent failures are reported, not rolled back.' \
-            'Read docs/maintenance.md before deliberate use.'
+            'Read docs/maintenance.md in the dotfiles checkout before deliberate use.'
         exit 0
         ;;
     refresh|upgrade) action="$1" ;;

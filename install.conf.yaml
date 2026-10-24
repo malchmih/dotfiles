@@ -10,6 +10,12 @@
     ~/.zshrc: zshrc
     ~/.zshenv: zshenv
     ~/.zprofile: zprofile
+    ~/.local/bin/update-tools:
+      path: update-tools
+      create: true
+    ~/.local/bin/update-system:
+      path: update-system
+      create: true
     ${XDG_CONFIG_HOME}/opencode/AGENTS.md:
       path: opencode/AGENTS.md
       create: true

@@ -2,23 +2,27 @@
 
 [Documentation index](../README.md#guides)
 
-Run these commands **from this checkout**, as your ordinary account, after
-reading their scopes. Installation (`setup-core`, `setup-toolchains`), applying
+After applying configuration with `./install` from the dotfiles checkout, run
+`update-tools` and `update-system` **from any directory**, as your ordinary account,
+after reading their scopes. Dotbot links only these two maintenance commands into
+`~/.local/bin`, already on PATH in the configured Zsh sessions. Other shells need
+that directory on PATH too; no system-wide installation is performed. Keep the
+checkout in place because the links point into it. Before applying the links,
+you can still run `./update-tools` and `./update-system` from the checkout.
+
+Installation (`setup-core`, `setup-toolchains`), applying
 configuration (`install`), and maintenance are different actions. Nothing here
-runs on shell startup. The former mixed-scope `up` alias is retired: `up` now
-prints guidance and returns failure without updating anything. Start a fresh
-shell to replace the old alias; inspect local overrides if it still behaves
-differently. The scripts work from Bash/Zsh without OMZ aliases/plugins.
+runs on shell startup. The scripts work from Bash/Zsh without OMZ aliases/plugins.
 
 ## User tools: whole selected inventories
 
 ```sh
-./update-tools --help
-./update-tools refresh        # Homebrew itself + definitions/taps, NOT packages
+update-tools --help
+update-tools refresh          # Homebrew itself + definitions/taps, NOT packages
 brew outdated --formula      # review candidates; inspection is manager-native
 uv tool list                 # if installed
 pipx list                    # if installed
-./update-tools upgrade       # deliberate broad upgrade, not a preview
+update-tools upgrade         # deliberate broad upgrade, not a preview
 ```
 
 **`upgrade` covers ALL installed Homebrew formulae, uv tool environments, and
@@ -82,13 +86,12 @@ Upgrading mise/uv binaries is **not** selecting new runtime versions:
   reviewed project, use `mise install` for declared versions; inspect `mise
   outdated` and the scope of `mise upgrade` before deliberately changing them.
   Do not run a blanket runtime upgrade from arbitrary checkouts or add `--bump`
-  as routine cleanup. NVM/SDKMAN are not reactivated or updated here; their
-  existing data is not deleted.
+  as routine cleanup.
 - uv-managed Python is separate from uv tools and bootstrap/system Python.
   Inspect `uv python list --only-installed` and `uv python upgrade --help` before
   an explicit `uv python upgrade` (managed Python patch updates, not a blanket
   project or major-version change). No Python runtime upgrade, `uv lock
-  --upgrade`, project sync, or legacy runtime deletion is requested by these
+  --upgrade`, project sync, or runtime deletion is requested by these
   helpers. Tool upgrades may update their own environment dependencies.
 
 See [toolchain ownership and trust](toolchains.md) and
@@ -97,8 +100,8 @@ See [toolchain ownership and trust](toolchains.md) and
 ## Native packages and OS: a separate privileged decision
 
 ```sh
-./update-system --help
-./update-system refresh
+update-system --help
+update-system refresh
 # Review candidates and save work before the separate upgrade invocation.
 ```
 
@@ -110,7 +113,7 @@ not installed software. `upgrade` runs **`sudo apt-get upgrade --no-remove`**:
 ```sh
 apt list --upgradable                  # inspection after refresh
 apt-get --simulate upgrade --no-remove # native preview; no sudo required
-./update-system upgrade               # review APT's normal confirmation
+update-system upgrade                 # review APT's normal confirmation
 ```
 
 This is the **whole native package inventory**, including APT-owned Zsh/Git/Vim,
@@ -143,7 +146,7 @@ It does not refresh Homebrew or install anything. After reviewing the exact
 version and label, request **one** update explicitly:
 
 ```sh
-./update-system upgrade 'EXACT LABEL COPIED FROM THE LIST'
+update-system upgrade 'EXACT LABEL COPIED FROM THE LIST'
 ```
 
 This runs `sudo softwareupdate --install "$label"`, never `--all`, `--restart`,

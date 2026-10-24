@@ -52,7 +52,7 @@ terminate or restart WSL to verify a proposed fix.
 
 ## Cleanup cautions
 
-Legacy NVM/SDKMAN trees, old runtimes, project environments, caches, mounted
+Installed runtimes, project environments, caches, mounted
 Windows directories, and container data can retain valuable state. Presence,
 age, or inactive PATH entries alone establish no removal case. Prefer package
 dependency metadata and activation references; ask about usage or report an

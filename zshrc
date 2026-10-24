@@ -4,12 +4,6 @@
 alias j=just
 alias restart-podman='podman machine stop && podman machine start'
 
-# Retire the mixed-scope alias without silently turning muscle memory into upgrades.
-up() {
-  print -u2 -- 'up is retired. From the dotfiles checkout, use ./update-tools or ./update-system --help; see docs/maintenance.md.'
-  return 1
-}
-
 # Keep a usable base shell even without Oh My Zsh or its plugins.
 bindkey -e
 export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
@@ -44,7 +38,7 @@ if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   source "$ZSH/oh-my-zsh.sh"
 fi
 
-# One active Node/Java selector; legacy NVM/SDKMAN installations stay on disk.
+# mise selects the active Node/Java runtimes.
 # No missing-runtime installation from activation, prompts, or command lookup.
 if (( $+commands[mise] )); then
   export MISE_AUTO_INSTALL=false
