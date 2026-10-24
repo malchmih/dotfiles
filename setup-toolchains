@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+# Explicit optional setup; never called by core recovery or shell startup.
+set -euo pipefail
+
+die() {
+    printf 'setup-toolchains: %s\n' "$*" >&2
+    exit 1
+}
+
+case "${1:-}" in
+    '') ;;
+    --help|-h)
+        printf '%s\n' 'Usage: ./setup-toolchains' \
+            'Install missing Homebrew mise/uv; select newest-stable personal Node/Temurin JDK defaults.' \
+            'Rerunning deliberately reselects current stable defaults; projects are not edited.' \
+            'See docs/toolchains.md for ownership, trust, migration, and verification.'
+        exit 0
+        ;;
+    *) die "Unknown option: $1. Use --help." ;;
+esac
+[[ $# -eq 0 ]] || die 'Expected no arguments. Use --help.'
+
+case "$(uname -s)" in
+    Darwin) ;;
+    Linux)
+        [[ -r /etc/os-release ]] || die 'Cannot identify Linux; expected Ubuntu or Debian.'
+        # shellcheck source=/dev/null
+        . /etc/os-release
+        case "${ID:-}" in
+            ubuntu|debian) ;;
+            *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
+        esac
+        ;;
+    *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
+esac
+[[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo.'
+command -v brew >/dev/null || die 'Homebrew must be on PATH; see docs/core-tools.md.'
+brew_prefix="$(brew --prefix)"
+
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+
+# Refuse visible competing owners before installing anything, including uvx.
+# No uninstall, forced link, or takeover of a standalone/pipx-owned manager.
+for tool in mise uv uvx; do
+    actual="$(command -v "$tool" || true)"
+    expected="$brew_prefix/bin/$tool"
+    if [[ -n "$actual" && ! "$actual" -ef "$expected" ]]; then
+        die "Competing $tool on PATH: $actual. Inspect ownership/PATH yourself; see docs/toolchains.md."
+    fi
+done
+
+missing=()
+for package in mise uv; do
+    if brew list --formula --versions "$package" >/dev/null 2>&1; then
+        printf 'Present (Homebrew): %s\n' "$package"
+    else
+        printf 'Missing (Homebrew): %s\n' "$package"
+        missing+=("$package")
+    fi
+done
+if [[ ${#missing[@]} -gt 0 ]]; then
+    brew install --formula "${missing[@]}" || die 'Homebrew installation failed; inspect the error and rerun.'
+fi
+brew tab --installed-on-request --formula mise uv || die 'Could not record explicit Homebrew ownership.'
+for tool in mise uv uvx; do
+    actual="$(command -v "$tool" || true)"
+    [[ -n "$actual" && "$actual" -ef "$brew_prefix/bin/$tool" ]] ||
+        die "Selected $tool is not on PATH. Fix Homebrew linking/PATH, then rerun."
+done
+
+# Do not load or rewrite the caller's project configuration. Global/personal
+# configuration remains user-owned; review existing mise config before setup.
+cd "$HOME"
+mise="$brew_prefix/bin/mise"
+"$mise" settings set auto_install false
+"$mise" settings set not_found_system_fallback false
+"$mise" settings set upgrade.auto_prune false
+# Resolve fresh stable releases, even if an older matching version is installed.
+# Pin the result so later prompts/install requests do not move the defaults.
+MISE_PRERELEASES=false MISE_FETCH_REMOTE_VERSIONS_CACHE=0s \
+    "$mise" use --global --pin node@latest java@temurin
+MISE_AUTO_INSTALL=false "$mise" exec -- node --version
+MISE_AUTO_INSTALL=false "$mise" exec -- java -version
+MISE_AUTO_INSTALL=false "$mise" exec -- javac -version
+"$brew_prefix/bin/uv" --version
+printf '%s\n' 'Personal defaults selected. Apply shared configuration with ./install from the checkout, then open a fresh terminal.' \
+    'NVM/SDKMAN data and pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'

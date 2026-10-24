@@ -38,12 +38,12 @@ if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   source "$ZSH/oh-my-zsh.sh"
 fi
 
-export SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
-[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-
-export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# One active Node/Java selector; legacy NVM/SDKMAN installations stay on disk.
+# No missing-runtime installation from activation, prompts, or command lookup.
+if (( $+commands[mise] )); then
+  export MISE_AUTO_INSTALL=false
+  eval "$(mise activate zsh)"
+fi
 
 # Last so local aliases, bindings, PATH, and other preferences can override shared ones.
 if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/interactive.zsh" ]]; then

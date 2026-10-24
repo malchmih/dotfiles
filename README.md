@@ -42,12 +42,25 @@ would need their own care. No custom preflight, transaction, or rollback layer i
 provided. Use `./install --help` for upstream options (including opt-in
 `--exit-on-failure`); ordinary application does not enable fail-fast behavior.
 
-Shared configuration works without local files, Oh My Zsh, SDKMAN, or NVM. Those
+Shared configuration works without local files, Oh My Zsh, or mise. Those
 integrations load only when already present. Startup does not install them,
 automatically update Oh My Zsh, or audit missing commands. Some convenience
 aliases still require their corresponding tools/plugins (`j` needs `just`,
 `restart-podman` needs Podman, and `up` needs the relevant package-manager aliases
 and tools). Installation and updates are separate, explicit operations.
+
+## Optional development toolchains
+
+After core recovery, deliberately run `./setup-toolchains` for Homebrew-owned
+mise and uv, newest-stable personal Node and Temurin JDK defaults, and conditional
+interactive mise activation. This is **not** part of `./setup-core`, `./install`,
+or startup. Rerunning intentionally reselects current stable defaults; projects
+can override them. NVM/SDKMAN initialization is retired, but their installations
+and runtime data remain. Existing pipx-owned applications are not migrated.
+
+See [toolchain setup and routine use](docs/toolchains.md) for project trust,
+Gradle Wrappers/JDK compatibility, noninteractive and IDE use, update scopes,
+Python tooling ownership, transition checks, and platform boundaries.
 
 ## Editors
 
