@@ -13,7 +13,7 @@ Restoring a usable personal working environment on a replacement machine. Recove
 _Avoid_: Exact reproduction, machine cloning
 
 **Shared configuration**:
-Personal preferences intended to be versioned together and reused across supported machines. It excludes credentials and employer-specific material that must remain non-public.
+Personal preferences intended to be versioned together and reused across supported machines, including selected preferences for optional tools. Sharing a tool's preferences does not make the tool a core dependency; credentials and employer-specific material remain non-public.
 _Avoid_: All configuration
 
 **Local configuration**:

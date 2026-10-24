@@ -1,6 +1,6 @@
 # Personal dotfiles
 
-Shared Zsh, Vim, and IdeaVim preferences, applied with
+Shared personal configuration, applied with
 [Dotbot](https://github.com/anishathalye/dotbot), plus explicit setup and
 maintenance commands for a recoverable **core environment**. Recovery means
 becoming productive again, not cloning an entire workstation or exact versions.
@@ -50,6 +50,7 @@ behavior, conflicts, diagnostics, and Dotbot updates.
 | Use shell bindings, suggestions, fzf, highlighting, and history | [Interactive shell](docs/interactive-shell.md) |
 | Add private settings or understand startup and PATH precedence | [Local configuration](docs/local-configuration.md) |
 | Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
+| Restore global OpenCode instructions and terminal preferences | [OpenCode preferences](docs/opencode.md) |
 | Opt into mise/uv, Node/Java, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
 | Update user tools or native packages with explicit scopes | [Maintenance](docs/maintenance.md) |
 

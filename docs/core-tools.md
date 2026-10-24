@@ -70,7 +70,7 @@ libraries/codecs/certificates are intentionally omitted.
 | API GUI | Bruno, installed/updated manually through Homebrew cask on macOS or its supported Linux distribution channel. Not needed for HTTPie. |
 | Media GUI | VLC; Homebrew cask on macOS or native Linux package/application channel. |
 | Desktop comfort | f.lux and Scroll Reverser; macOS casks. Not portable shell dependencies or Linux recovery requirements. |
-| AI assistants and coding clients | OpenCode, Claude Code, and Copilot CLI/desktop clients are optional independent tools. Retain their existing Homebrew/cask or upstream owner; do not install competing copies. Authentication/subscriptions and their configurations are separate. |
+| AI assistants and coding clients | OpenCode, Claude Code, and Copilot CLI/desktop clients are optional independent tools. Retain their existing Homebrew/cask or upstream owner; do not install competing copies. Only selected [OpenCode preferences](opencode.md) are shared by `./install`; client installation, authentication/subscriptions, provider/model choices, and other client configurations remain separate. |
 | IDEs | JetBrains/IdeaVim are optional; see [editors](editors.md). Autosuggestions, fzf, and highlighting are core shell selections, not IDE dependencies. |
 
 Prefer one owner per executable. Use Homebrew formulae/casks for suitable macOS

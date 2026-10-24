@@ -106,6 +106,13 @@ dependencies itself; a recursive clone is unnecessary. Dotbot links:
 | `zshrc` | `~/.zshrc` |
 | `vimrc` | `~/.vimrc` |
 | `ideavimrc` | `~/.ideavimrc` |
+| `opencode/AGENTS.md` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md` |
+| `opencode/cli.json` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/cli.json` |
+
+The `install` wrapper supplies the default `XDG_CONFIG_HOME` for Dotbot; export
+it before invoking `./install` to use a different config directory. OpenCode
+links create their parent directories even if the optional client is absent.
+See [OpenCode preferences](opencode.md) for scope and application-written edits.
 
 Existing links can be relinked; conflicting regular files are **not** forcibly
 replaced. Inspect and preserve their contents, moving them aside deliberately

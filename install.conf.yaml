@@ -10,3 +10,9 @@
     ~/.zshrc: zshrc
     ~/.zshenv: zshenv
     ~/.zprofile: zprofile
+    ${XDG_CONFIG_HOME}/opencode/AGENTS.md:
+      path: opencode/AGENTS.md
+      create: true
+    ${XDG_CONFIG_HOME}/opencode/cli.json:
+      path: opencode/cli.json
+      create: true
