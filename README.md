@@ -1,203 +1,57 @@
 # Personal dotfiles
 
 Shared Zsh, Vim, and IdeaVim preferences, applied with
-[Dotbot](https://github.com/anishathalye/dotbot). Machine-specific and private
-settings belong outside this checkout.
+[Dotbot](https://github.com/anishathalye/dotbot), plus explicit setup and
+maintenance commands for a recoverable **core environment**. Recovery means
+becoming productive again, not cloning an entire workstation or exact versions.
+Machine-specific and private settings stay outside this checkout.
 
-## Core recovery
+Targets: macOS and Ubuntu/Debian desktop or WSL Linux. Native Windows and
+Arch/Manjaro are not current targets; package-manager support limits also apply.
 
-Target macOS and Ubuntu/Debian desktop or WSL Linux, not native Windows or
-Arch/Manjaro. First follow the [bootstrap prerequisites](docs/core-tools.md#bootstrap-prerequisites)
-for Git, Bash, Python 3, and Homebrew; cloning and Dotbot need prerequisites
-before configuration can be applied. Then:
+## Quick start
+
+First follow the [bootstrap prerequisites](docs/recovery.md#bootstrap-prerequisites)
+for Git, Bash, Python 3, and Homebrew. Then, as your ordinary account:
 
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
 cd dotfiles
-brew update                 # refresh package definitions, not installed software
-./setup-core                # explicitly install missing core tools and Oh My Zsh
-./setup-core --check         # package ownership, command paths, and versions
-./install --dry-run
-./install
+brew update                 # refresh Homebrew and definitions, not packages
+./setup-core                # install missing core tools and Oh My Zsh
+./setup-core --check         # inspect ownership, command paths, and versions
+./install --dry-run          # preview; bootstrap can still fetch/change submodules
+./install                   # apply shared configuration links
 ```
 
-**Install tools**, **apply configuration**, and **change the account shell** are
-separate actions. Neither command changes the login shell. See the
-[core-tool workflow](docs/core-tools.md) for tool-by-tool sources/update owners,
-repeat-run behavior, PATH troubleshooting, deliberate `chsh`, platform limits,
-and the curated optional CLI/media/GUI inventory. After opening a fresh terminal,
-repeat `./setup-core --check`. Optional applications, container engines, task
-runners, and language runtimes are not part of core provisioning.
+Open a fresh terminal and repeat `./setup-core --check`. Try `zsh -l` if your
+terminal does not already start Zsh; changing the account shell is a
+[separate, deliberate action](docs/recovery.md#choose-the-account-shell).
 
-The bootstrap initializes the pinned Dotbot submodule itself; a recursive clone
-is unnecessary. Application is best-effort: a failed link does not prevent other
-links from being attempted, but Dotbot reports failure overall. Existing links
-can be relinked; conflicting regular files are **not** forcibly replaced. Inspect
-and move those files yourself if you want the shared links instead.
+- **Setup installs tools; `install` applies configuration.** Neither changes the
+  login shell. Optional runtime setup and broad upgrades are separate actions.
+- **Conflicting regular files are not overwritten.** Inspect and move them
+  deliberately if you want the shared links. Application is best-effort, not a
+  transaction; failures can leave some links applied.
+- **Dry-run is not strictly read-only:** bootstrap initializes the pinned Dotbot
+  submodule before forwarding upstream options.
+- **Startup does not install anything.** Missing optional integrations are
+  skipped; shared configuration works without local files or Oh My Zsh.
 
-`./install --dry-run` forwards Dotbot's upstream dry-run option. It is not a
-strict read-only wrapper: the bootstrap still synchronizes/initializes the Git
-submodule before Dotbot runs, and arbitrary shell actions in a future config
-would need their own care. No custom preflight, transaction, or rollback layer is
-provided. Use `./install --help` for upstream options (including opt-in
-`--exit-on-failure`); ordinary application does not enable fail-fast behavior.
+See [recovery and configuration deployment](docs/recovery.md) for repeat-run
+behavior, conflicts, diagnostics, and Dotbot updates.
 
-Shared configuration works without local files, Oh My Zsh, mise, or the shell
-enhancements. Integrations load only when already present. Startup does not
-install packages or audit missing commands. Oh My Zsh retains its automatic
-updater for its own checkout (not separately packaged plugins). Some convenience
-aliases still require their corresponding tools (`j` needs `just` and
-`restart-podman` needs Podman). Package installation and updates are separate,
-explicit operations; the mixed-scope `up` alias is retired.
+## Guides
 
-## Interactive shell
+| I want to… | Guide |
+| --- | --- |
+| Recover the core environment or apply shared configuration | [Recovery](docs/recovery.md) |
+| Understand core package sources and choose optional applications | [Tools and ownership](docs/core-tools.md) |
+| Use shell bindings, suggestions, fzf, highlighting, and history | [Interactive shell](docs/interactive-shell.md) |
+| Add private settings or understand startup and PATH precedence | [Local configuration](docs/local-configuration.md) |
+| Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
+| Opt into mise/uv, Node/Java, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
+| Update user tools or native packages with explicit scopes | [Maintenance](docs/maintenance.md) |
 
-Keep Zsh, Oh My Zsh, and the **awesomepanda** prompt, with Emacs-style editing,
-inline history suggestions, fzf history/file/directory pickers, and syntax
-highlighting. `./setup-core` installs the three Homebrew-owned additions on both
-platforms; no extra plugin manager or font is needed. Start a fresh shell to
-apply changes. See [shell behavior, bindings, loading, and updates](docs/interactive-shell.md)
-for the quickstart and missing-component diagnostics.
-
-## Optional development toolchains
-
-After core recovery, deliberately run `./setup-toolchains` for Homebrew-owned
-mise and uv, newest-stable personal Node and Temurin JDK defaults, and conditional
-interactive mise activation. This is **not** part of `./setup-core`, `./install`,
-or startup. Rerunning intentionally reselects current stable defaults; projects
-can override them. NVM/SDKMAN initialization is retired, but their installations
-and runtime data remain. Existing pipx-owned applications are not migrated.
-
-See [toolchain setup and routine use](docs/toolchains.md) for project trust,
-Gradle Wrappers/JDK compatibility, noninteractive and IDE use, update scopes,
-Python tooling ownership, transition checks, and platform boundaries.
-
-## Maintenance
-
-From this checkout, use `./update-tools refresh` then deliberately
-`./update-tools upgrade` for **all installed Homebrew formulae, uv tools, and
-pipx apps**, including optional/work inventory—not just the recovery selections.
-Missing managers are skipped; failures are reported with partial progress kept.
-OMZ retains its native automatic updater. Runtime selection, project dependency
-changes, casks, and App Store apps are separate actions.
-
-OS/native maintenance requires its own explicit `./update-system refresh` and
-`./update-system upgrade` (on macOS, supply one reviewed update label). APT uses
-sudo and covers native user tools as well as system packages; ordinary Homebrew
-maintenance does not. No release upgrade or reboot is requested. Read
-[maintenance scopes, commands, privileges, troubleshooting, and optional future
-scheduling](docs/maintenance.md) before using these broad upgrade actions.
-
-## Editors
-
-Terminal Vim is the lightweight fallback editor in the core environment, for
-ordinary text and quick edits rather than a full development-editor setup.
-`./install` links `vimrc` to `~/.vimrc`; no Vundle, downloaded plugins, or external
-theme is required. The small built-in baseline enables filetype detection and
-indentation, syntax highlighting, autoindent, backspace across indentation and
-line boundaries, highlighted/incremental search, a status line, and line numbers.
-There is no blanket two-space indentation policy; built-in filetype rules and
-Vim defaults apply. Arrow keys and normal-mode navigation keep their defaults.
-
-In insert mode, type **`fd`** to return to normal mode. This is the only custom
-mapping, shared deliberately by Vim and IdeaVim.
-
-Vim's default recovery policy is unchanged: swap files are enabled and writes
-use the default temporary backup behavior (`writebackup`), not persistent backup
-copies (`backup` is off by default). Swap-file warnings after an interrupted
-session are not configuration errors. Use `vim -r path/to/file` to recover a
-buffer, inspect and save the recovered text, and remove the stale swap file only
-after recovery is complete and no other Vim session is using it. This is Vim's
-standard recovery, not a separate backup system; see `:help recovery`.
-
-IdeaVim is an **optional, independent** IDE preference. Dotbot links `ideavimrc`
-to `~/.ideavimrc`, whose only customization is the same `fd` mapping; it does not
-source terminal Vim settings or add Cursive actions, navigation, clipboard, or
-join overrides. The link is harmless without an IDE. Install a compatible
-JetBrains IDE and IdeaVim separately if wanted; neither IDE/plugin installation
-nor a full development-editor setup is part of core recovery. Start a new Vim
-session to load edits to `vimrc`; for IdeaVim, use `:source ~/.ideavimrc` or restart
-the IDE. When migrating an already-running IdeaVim session from the legacy
-configuration, restart the IDE to clear previously loaded mappings and options.
-
-## Optional local configuration
-
-```sh
-./scaffold-local
-```
-
-This copies harmless commented examples into
-`${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/`:
-
-- `env.zsh`: minimal environment additions for **every Zsh**, including scripts
-  and `zsh -c`. Keep it quiet and fast; no interactive setup or credentials
-  prompts. It runs after the shared environment defaults.
-- `interactive.zsh`: interactive aliases, bindings, tool initialization, and
-  overrides. It is the **last preference phase**, after shared aliases and
-  integrations; syntax highlighting initializes afterward to see local widgets.
-
-Edit those external files incrementally; do not copy the shared startup files.
-For example, uncomment `export EDITOR=vi` in `env.zsh` for all new Zsh sessions,
-or `alias j='just --verbose'` in `interactive.zsh` for interactive sessions only.
-The examples do nothing until edited. Set/export `XDG_CONFIG_HOME` in the
-launching environment **before Zsh starts** to choose a different directory;
-setting it inside a local file is too late to locate that file reliably.
-
-Repeated scaffolding only creates missing directories/files, never overwrites
-existing paths (including symlinks), and reports where to edit. New directories
-are owner-only and new files are owner-readable/writable; existing permissions
-and contents are unchanged. It installs no packages, collects no credentials,
-changes no login shell, and activates no profiles. Neither scaffolding nor local
-files are needed for `./install`.
-
-Local configuration is **not versioned or backed up here**. Arrange its secure
-backup separately if needed. Employer-specific settings and credentials must
-never go into the shared files or committed examples. For an existing-machine
-transition, preserve private exports in local `env.zsh` before removing their
-shared declarations; verify them without printing their values.
-
-## Startup and PATH
-
-| Session | Shared startup coverage | Local coverage |
-| --- | --- | --- |
-| Noninteractive `zsh -c` / Zsh scripts | `.zshenv` | `env.zsh` |
-| Noninteractive login `zsh -lc` | `.zshenv`, `.zprofile` | `env.zsh` |
-| Interactive `zsh -ic` | `.zshenv`, `.zshrc` | both files |
-| Interactive login `zsh -lic` | all three | both files |
-
-This follows standard Zsh startup (not `zsh -f`, which skips user startup files).
-Dotbot links these files into `$HOME`; if you deliberately use `ZDOTDIR`, arrange
-the corresponding startup links there yourself. Bash and other shells do not
-source these files. These files do **not** configure every GUI application's
-environment automatically; GUI launchers may not start Zsh at all.
-
-The shared environment prepends `$HOME/.local/bin` and deduplicates `path`/`PATH`
-while keeping the first occurrence. On Linux, it also recognizes the standard
-`/home/linuxbrew/.linuxbrew` prefix when its `bin/brew` is executable, putting
-its bin/sbin after `.local/bin` in every Zsh, including noninteractive sessions.
-`.zprofile` restores user-command precedence after
-macOS's system login setup (`path_helper`) reorders PATH, with the selected
-Homebrew tools next (recognizing `/opt/homebrew`, then `/usr/local`, when `brew`
-exists there). Put general additional
-directories in local `env.zsh`, usually with `path+=("/some/bin")`. A prepend there
-can precede `.local/bin` in non-login shells, but login setup restores
-`.local/bin` first. Put final interactive precedence overrides in local
-`interactive.zsh`, using `path=("/some/bin" $path)`. Avoid repeatedly concatenating
-raw PATH strings. Tool managers may also adjust PATH in the interactive phase.
-
-The installed files are live symlinks into this checkout: edits apply to **new**
-sessions immediately, without rerunning Dotbot. Open a new shell or use
-`exec zsh -l` to replace the current interactive shell (after saving work).
-Existing processes keep their old environment; repeatedly sourcing `.zshrc`
-can repeat third-party initialization and is not a full startup refresh.
-
-## Updating Dotbot
-
-Dotbot is pinned to **1.24.0** as a Git submodule. Ordinary `./install` uses the
-committed revision, not the latest remote version. To intentionally update it,
-review an upstream release, fetch it inside `dotbot`, check out the chosen tag,
-then commit the changed submodule pointer in this repository. Do not add another
-submodule update action to `install.conf.yaml`: both bootstrap scripts already
-perform the required initialization.
-
+The [glossary](GLOSSARY.md) defines the repository's scope and terminology.
 This repository retains the public-domain [license](LICENSE.md).

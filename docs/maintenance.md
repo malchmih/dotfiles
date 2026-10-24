@@ -1,5 +1,7 @@
 # Deliberate maintenance
 
+[Documentation index](../README.md#guides)
+
 Run these commands **from this checkout**, as your ordinary account, after
 reading their scopes. Installation (`setup-core`, `setup-toolchains`), applying
 configuration (`install`), and maintenance are different actions. Nothing here
@@ -180,7 +182,7 @@ removed, migrated, or forcibly taken over by maintenance.
 - Update this checkout deliberately with Git after reviewing changes; new shell
   sessions see symlinked configuration immediately. Neither helper pulls the
   dotfiles repo, changes Dotbot's pinned submodule, applies links, or changes the
-  login shell. See [core recovery](core-tools.md) and the README's Dotbot section.
+  login shell. See [recovery](recovery.md) and [Dotbot updates](recovery.md#update-dotbot).
 - `./setup-core --check` diagnoses the selected core owners/PATH after recovery;
   it is not an updater. On errors inspect manager-native output, `type -a`,
   `brew doctor`, available disk space, repository/index access, configured pins,
@@ -193,14 +195,3 @@ removed, migrated, or forcibly taken over by maintenance.
   policy. No jobs, timers, services, or scheduling subsystem are added or enabled
   here. This does not disable the retained component-native OMZ automatic updater
   or existing OS/application update policies.
-
-## Verification boundaries
-
-Use `bash -n update-tools` and `bash -n update-system`, ShellCheck if available, both `--help`
-commands, and a fresh-shell `up` refusal. Disposable PATH command probes can
-check dispatch, scopes, skips, and error statuses without performing upgrades.
-They do not establish real package compatibility or a Linux pass. No persistent
-test suite/fixtures or CI are part of this workflow. Actual implementation
-observations are recorded in #14; [#15](https://github.com/malchmih/dotfiles/issues/15)
-collects the real Linux/WSL integration follow-up. Do not run broad upgrades just
-to demonstrate a helper.

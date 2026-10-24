@@ -1,5 +1,7 @@
 # Interactive shell
 
+[Documentation index](../README.md#guides)
+
 The shared shell keeps Zsh, Oh My Zsh (OMZ), **awesomepanda**, and ordinary local
 history. `./setup-core` explicitly installs Homebrew `fzf`,
 `zsh-autosuggestions`, and `zsh-syntax-highlighting` on macOS and Linux. This
@@ -26,15 +28,8 @@ searches and previews vary by widget. OMZ may set `FZF_DEFAULT_COMMAND` using
 available `rg`/`fd`, but the stock `Ctrl-T`/`Alt-C` walkers have their own defaults.
 No custom previews or recursive helper scripts are configured.
 
-Learning tracks (practice is not a recovery blocker):
-
-- [#3: Emacs-style prompt editing](https://github.com/malchmih/dotfiles/issues/3)
-- [#4: reading syntax highlighting](https://github.com/malchmih/dotfiles/issues/4)
-- [#6: fzf history, file, and directory selection](https://github.com/malchmih/dotfiles/issues/6)
-- [#7: inline autosuggestions](https://github.com/malchmih/dotfiles/issues/7)
-
-[#5: optional Starship evaluation](https://github.com/malchmih/dotfiles/issues/5)
-is separate and nonblocking; this setup does not install or enable it.
+Use the upstream references below for further practice. No additional prompt
+framework is installed or enabled.
 
 ## Loading and local ownership
 
@@ -53,7 +48,7 @@ them. Shared `.zshrc` proceeds in this order:
    normal `Ctrl-R`. No `~/.fzf.zsh`, manual `eval "$(fzf --zsh)"`, second plugin
    manager, extra `compinit`, or old `zsh-completions` checkout is needed.
 4. Optional mise activation, then Homebrew's autosuggestions script.
-5. Local `${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/interactive.zsh`: the last
+5. [Local `interactive.zsh`](local-configuration.md): the last
    **preference** phase, so local aliases, bindings, plugin settings and styles
    override shared choices. Do not initialize fzf or another highlighter here.
 6. Homebrew syntax highlighting finalizes **after** local widget definitions,
@@ -62,7 +57,7 @@ them. Shared `.zshrc` proceeds in this order:
 Homebrew script paths are `<brew --prefix>/share/zsh-autosuggestions/` and
 `<brew --prefix>/share/zsh-syntax-highlighting/`, so custom prefixes and Linux's
 usual `/home/linuxbrew/.linuxbrew` work too. Ensure `brew` and `fzf` are on the
-startup PATH (see [core PATH setup](core-tools.md#recovery-sequence)); one prefix
+startup PATH (see [PATH setup](local-configuration.md#path-precedence-and-homebrew)); one prefix
 lookup locates both scripts. Don't also add these as OMZ custom plugins.
 
 Local preferences remain yours: preserve existing files and review old local
@@ -124,11 +119,10 @@ print -r -- $HISTFILE $HISTSIZE $SAVEHIST
 [[ -o share_history ]] && print SHARE_HISTORY
 ```
 
-Then actually try the keys above, two same-machine sessions for history sharing,
-and fresh interactive/login/noninteractive shells. Function/binding inspection
-alone is not proof of visible behavior. Verification on macOS or with disposable
-probes is not a Linux/WSL pass; [#15](https://github.com/malchmih/dotfiles/issues/15)
-tracks actual Linux integration. No performance improvement is asserted.
+If bindings look correct but do not work in the terminal, try the keys above in
+a fresh interactive terminal and check whether the terminal intercepts them.
+For history-sharing problems, compare two same-machine sessions and inspect
+local overrides of the history settings above.
 
 Upstream references: [OMZ settings](https://github.com/ohmyzsh/ohmyzsh/wiki/Settings),
 [OMZ fzf plugin](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/fzf),

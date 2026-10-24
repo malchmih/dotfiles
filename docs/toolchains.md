@@ -1,5 +1,7 @@
 # Optional development toolchains
 
+[Documentation index](../README.md#guides)
+
 Core recovery and the local shell layer work independently of runtimes. Neither
 `./setup-core`, `./install`, nor shell startup invokes `./setup-toolchains` or
 installs runtimes. No scheduler, blanket trust, profile/context framework, global
@@ -7,7 +9,7 @@ Gradle, Python runtime, or Python application is added by this workflow.
 
 ## Explicit opt-in
 
-Use the ordinary account and the [core bootstrap prerequisites](core-tools.md#bootstrap-prerequisites)
+Use the ordinary account and the [core bootstrap prerequisites](recovery.md#bootstrap-prerequisites)
 on macOS or Ubuntu/Debian desktop/WSL Linux, including Homebrew on PATH and working
 HTTPS. Homebrew's platform support/bottle limits still apply. Native Windows and
 Arch/Manjaro are not targets. Setup needs no sudo of its own.
@@ -132,8 +134,9 @@ Do not delete old runtimes merely to tidy up this transition.
 ## Scripts, IDEs, and Gradle
 
 Noninteractive Zsh does not activate mise. Put Homebrew's bin directory on PATH
-in the launching environment or minimal local `env.zsh` as described in the core
-docs. From a reviewed project, prefer explicit execution, with installed tools:
+in the launching environment or minimal local `env.zsh` as described in
+[PATH setup](local-configuration.md#path-precedence-and-homebrew).
+From a reviewed project, prefer explicit execution, with installed tools:
 
 ```sh
 mise exec -- node script.js
@@ -194,14 +197,3 @@ refresh|upgrade`: all installed Homebrew formulae (including managers), uv tool
 environments, and pipx apps, not only the core inventory. It does not reselect
 mise runtimes, upgrade uv-managed Python, rewrite project declarations, or revive
 NVM/SDKMAN. Use the explicit runtime actions above when intended.
-
-## Verification boundaries
-
-Use `bash -n setup-toolchains`, `zsh -n zshrc`, setup's version checks, and
-fresh interactive sessions. Verify personal selections outside projects, reviewed
-project overrides, noninteractive `mise exec` and `JAVA_HOME`, absent-manager
-startup, and unchanged legacy directories/pipx inventory. Use disposable homes
-or projects for fallback/missing-version probes; no persistent tests are kept.
-Current implementation results are recorded in #12; real Ubuntu/WSL integration
-is handed off to #15, not implied by macOS or mocked checks. A working existing
-Mac is not clean-machine provisioning or a Linux pass.
