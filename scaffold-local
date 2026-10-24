@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Explicitly create examples; shell startup and ./install never call this.
+set -euo pipefail
+umask 077
+
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOCAL_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles"
+
+mkdir -p "$LOCAL_DIR"
+for name in env.zsh interactive.zsh; do
+    target="$LOCAL_DIR/$name"
+    if [[ -e "$target" || -L "$target" ]]; then
+        printf 'Kept existing file: %s\n' "$target"
+    else
+        # noclobber also protects a file created between the check and the write.
+        (set -o noclobber; cat "$BASEDIR/local/$name.example" > "$target")
+        printf 'Created: %s\n' "$target"
+    fi
+done
+
+printf 'Edit local configuration in: %s\n' "$LOCAL_DIR"

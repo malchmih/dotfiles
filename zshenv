@@ -1,15 +1,8 @@
-path+=("$HOME/.local/bin")
+# Prefer user-installed commands and avoid duplicate PATH entries.
+typeset -U path
+path=("$HOME/.local/bin" $path)
 
-if [[ "$OSTYPE" == darwin* ]]; then
-  alias up='bubu && mas upgrade && softwareupdate -i -a'
-elif [[ "$OSTYPE" == linux* ]] && [[ -r /etc/os-release ]] && grep -qE '^ID="?ubuntu"?$' /etc/os-release; then
-  alias up='bubu && aguu'
-else
-  alias up='echo "OS not supported"'
+# Optional machine-local environment, including noninteractive shells.
+if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/env.zsh" ]]; then
+  source "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/env.zsh"
 fi
-
-alias j=just
-
-alias restart-podman='podman machine stop && podman machine start'
-
-export UV_INDEX_ZALANDO_USERNAME=mmalchevskii

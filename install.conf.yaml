@@ -9,6 +9,4 @@
     ~/.ideavimrc: ideavimrc
     ~/.zshrc: zshrc
     ~/.zshenv: zshenv
-
-- shell:
-  - [git submodule update --init --recursive, Installing submodules]
+    ~/.zprofile: zprofile

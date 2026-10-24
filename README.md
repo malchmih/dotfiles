@@ -1,58 +1,113 @@
-Dotfiles Template
-=================
+# Personal dotfiles
 
-This is a template repository for bootstrapping your dotfiles with [Dotbot][dotbot].
+Shared Zsh, Vim, and IdeaVim preferences, applied with
+[Dotbot](https://github.com/anishathalye/dotbot). Machine-specific and private
+settings belong outside this checkout.
 
-To get started, you can [create a new repository from this template][template]
-(or you can [fork][fork] this repository, if you prefer). You can probably
-delete this README and rename your version to something like just `dotfiles`.
+## Fresh setup
 
-In general, you should be using symbolic links for everything, and using git
-submodules whenever possible.
+Install Git, Zsh, and a Python version supported by Dotbot (Python 3 recommended)
+using your platform's package manager, then:
 
-To keep submodules at their proper versions, you could include something like
-`git submodule update --init --recursive` in your `install.conf.yaml`.
+```sh
+git clone https://github.com/malchmih/dotfiles.git
+cd dotfiles
+./install --dry-run
+./install
+```
 
-To upgrade your submodules to their latest versions, you could periodically run
-`git submodule update --init --remote`.
+The bootstrap initializes the pinned Dotbot submodule itself; a recursive clone
+is unnecessary. Application is best-effort: a failed link does not prevent other
+links from being attempted, but Dotbot reports failure overall. Existing links
+can be relinked; conflicting regular files are **not** forcibly replaced. Inspect
+and move those files yourself if you want the shared links instead.
 
-Inspiration
------------
+`./install --dry-run` forwards Dotbot's upstream dry-run option. It is not a
+strict read-only wrapper: the bootstrap still synchronizes/initializes the Git
+submodule before Dotbot runs, and arbitrary shell actions in a future config
+would need their own care. No custom preflight, transaction, or rollback layer is
+provided. Use `./install --help` for upstream options (including opt-in
+`--exit-on-failure`); ordinary application does not enable fail-fast behavior.
 
-If you're looking for inspiration for how to structure your dotfiles or what
-kinds of things you can include, you could take a look at some repos using
-Dotbot.
+Shared configuration works without local files, Oh My Zsh, SDKMAN, or NVM. Those
+integrations load only when already present. Startup does not install them,
+automatically update Oh My Zsh, or audit missing commands. Some convenience
+aliases still require their corresponding tools/plugins (`j` needs `just`,
+`restart-podman` needs Podman, and `up` needs the relevant package-manager aliases
+and tools). Installation and updates are separate, explicit operations.
 
-* [anishathalye's dotfiles][anishathalye_dotfiles]
-* [csivanich's dotfiles][csivanich_dotfiles]
-* [m45t3r's dotfiles][m45t3r_dotfiles]
-* [alexwh's dotfiles][alexwh_dotfiles]
-* [azd325's dotfiles][azd325_dotfiles]
-* [wazery's dotfiles][wazery_dotfiles]
-* [thirtythreeforty's dotfiles][thirtythreeforty_dotfiles]
+## Optional local configuration
 
-And there are about [700 more here][dotbot-users].
+```sh
+./scaffold-local
+```
 
-If you're using Dotbot and you'd like to include a link to your dotfiles here
-as an inspiration to others, please submit a pull request.
+This copies harmless commented examples into
+`${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/`:
 
-License
--------
+- `env.zsh`: minimal environment additions for **every Zsh**, including scripts
+  and `zsh -c`. Keep it quiet and fast; no interactive setup or credentials
+  prompts. It runs after the shared environment defaults.
+- `interactive.zsh`: interactive aliases, bindings, tool initialization, and
+  overrides. It runs **last**, after shared aliases and optional integrations.
 
-This software is hereby released into the public domain. That means you can do
-whatever you want with it without restriction. See `LICENSE.md` for details.
+Edit those external files incrementally; do not copy the shared startup files.
+For example, uncomment `export EDITOR=vi` in `env.zsh` for all new Zsh sessions,
+or `alias j='just --verbose'` in `interactive.zsh` for interactive sessions only.
+The examples do nothing until edited. Set/export `XDG_CONFIG_HOME` in the
+launching environment **before Zsh starts** to choose a different directory;
+setting it inside a local file is too late to locate that file reliably.
 
-That being said, I would appreciate it if you could maintain a link back to
-Dotbot (or this repository) to help other people discover Dotbot.
+Repeated scaffolding only creates missing directories/files, never overwrites
+existing paths (including symlinks), and reports where to edit. New directories
+are owner-only and new files are owner-readable/writable; existing permissions
+and contents are unchanged. It installs no packages, collects no credentials,
+changes no login shell, and activates no profiles. Neither scaffolding nor local
+files are needed for `./install`.
 
-[dotbot]: https://github.com/anishathalye/dotbot
-[fork]: https://github.com/anishathalye/dotfiles_template/fork
-[template]: https://github.com/anishathalye/dotfiles_template/generate
-[anishathalye_dotfiles]: https://github.com/anishathalye/dotfiles
-[csivanich_dotfiles]: https://github.com/csivanich/dotfiles
-[m45t3r_dotfiles]: https://github.com/m45t3r/dotfiles
-[alexwh_dotfiles]: https://github.com/alexwh/dotfiles
-[azd325_dotfiles]: https://github.com/Azd325/dotfiles
-[wazery_dotfiles]: https://github.com/wazery/dotfiles
-[thirtythreeforty_dotfiles]: https://github.com/thirtythreeforty/dotfiles
-[dotbot-users]: https://github.com/anishathalye/dotbot/wiki/Users
+Local configuration is **not versioned or backed up here**. Arrange its secure
+backup separately if needed. Employer-specific settings and credentials must
+never go into the shared files or committed examples. For an existing-machine
+transition, preserve private exports in local `env.zsh` before removing their
+shared declarations; verify them without printing their values.
+
+## Startup and PATH
+
+| Session | Shared startup coverage | Local coverage |
+| --- | --- | --- |
+| Noninteractive `zsh -c` / Zsh scripts | `.zshenv` | `env.zsh` |
+| Noninteractive login `zsh -lc` | `.zshenv`, `.zprofile` | `env.zsh` |
+| Interactive `zsh -ic` | `.zshenv`, `.zshrc` | both files |
+| Interactive login `zsh -lic` | all three | both files |
+
+This follows standard Zsh startup (not `zsh -f`, which skips user startup files).
+Dotbot links these files into `$HOME`; if you deliberately use `ZDOTDIR`, arrange
+the corresponding startup links there yourself. Bash and other shells do not
+source these files. These files do **not** configure every GUI application's
+environment automatically; GUI launchers may not start Zsh at all.
+
+The shared environment prepends `$HOME/.local/bin` and deduplicates `path`/`PATH`
+while keeping the first occurrence. `.zprofile` restores that precedence after
+macOS's system login setup (`path_helper`) reorders PATH. Put general additional
+directories in local `env.zsh`, usually with `path+=("/some/bin")`. A prepend there
+can precede `.local/bin` in non-login shells, but login setup restores
+`.local/bin` first. Put final interactive precedence overrides in local
+`interactive.zsh`, using `path=("/some/bin" $path)`. Avoid repeatedly concatenating
+raw PATH strings. Tool managers may also adjust PATH in the interactive phase.
+
+The installed files are live symlinks into this checkout: edits apply to **new**
+sessions immediately, without rerunning Dotbot. Open a new shell or use
+`exec zsh -l` to replace the current interactive shell (after saving work).
+Existing processes keep their old environment; repeatedly sourcing `.zshrc`
+can repeat third-party initialization and is not a full startup refresh.
+
+## Updating Dotbot
+
+Dotbot is pinned to **1.24.0** as a Git submodule. Ordinary `./install` uses the
+committed revision, not the latest remote version. To intentionally update it,
+review an upstream release, fetch it inside `dotbot`, check out the chosen tag,
+then commit the changed submodule pointer in this repository. Do not add another
+submodule update action to `install.conf.yaml`: both bootstrap scripts already
+perform the required initialization.
+
+This repository retains the public-domain [license](LICENSE.md).

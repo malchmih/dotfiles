@@ -1,0 +1,5 @@
+# Optional machine-local interactive additions, loaded after shared setup.
+# Example overrides (uncomment and adapt only if needed):
+# alias j='just --verbose'
+# bindkey -e
+# path=("$HOME/tools/bin" $path)
