@@ -14,6 +14,7 @@ case "${1:-}" in
             'refresh: refresh Homebrew definitions and Homebrew itself; no package upgrades.' \
             'upgrade: ALL installed Homebrew formulae, uv tools, and pipx apps on PATH.' \
             'Includes optional/work inventories, not just repository-selected tools.' \
+            'Homebrew confirmation is automatically accepted; authentication and other prompts may remain.' \
             'No sudo, casks, App Store, OS, runtime selection, or project updates.' \
             'Missing managers are skipped; independent failures are reported, not rolled back.' \
             'Read docs/maintenance.md in the dotfiles checkout before deliberate use.'
@@ -48,7 +49,7 @@ if command -v brew >/dev/null; then
         brew update || { printf '%s\n' 'FAILED: Homebrew refresh.' >&2; failed=1; }
     else
         printf '%s\n' 'Homebrew: upgrading ALL installed formulae, including optional/work tools and managers (not casks).'
-        brew upgrade --formula || { printf '%s\n' 'FAILED: Homebrew formula upgrades; continuing with independent managers.' >&2; failed=1; }
+        brew upgrade --formula --yes || { printf '%s\n' 'FAILED: Homebrew formula upgrades; continuing with independent managers.' >&2; failed=1; }
     fi
 else
     printf '%s\n' 'SKIP: Homebrew not on PATH.'

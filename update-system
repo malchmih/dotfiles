@@ -12,7 +12,8 @@ case "${1:-}" in
     --help|-h|'')
         printf '%s\n' 'Usage: update-system refresh|upgrade [macOS-update-label]' \
             'macOS: refresh lists Apple updates; upgrade requires one exact reviewed update label.' \
-            'Ubuntu/Debian/WSL: refresh APT indexes; upgrade ALL native packages with --no-remove.' \
+            'Ubuntu/Debian/WSL: refresh APT indexes; upgrade ALL native packages with --no-remove --yes.' \
+            'APT confirmation is automatically accepted; authentication and other prompts may remain.' \
             'Upgrade uses sudo; APT refresh also uses sudo. No release upgrade or reboot is requested.' \
             'No Homebrew, App Store, runtime, or Windows-host maintenance.' \
             'Read docs/maintenance.md in the dotfiles checkout for privileges, label selection, and platform limitations.'
@@ -54,9 +55,9 @@ case "$(uname -s)" in
             printf '%s\n' 'APT: refreshing configured repository indexes (sudo), not installed packages.'
             sudo apt-get update || die 'APT refresh failed; inspect networking, repositories, and package-manager locks.'
         else
-            printf '%s\n' 'APT: upgrading ALL native packages, including Zsh/Git/Vim (sudo; --no-remove; no -y).' \
-                'Review the APT proposal. No full-upgrade, release upgrade, autoremove, or reboot is requested.'
-            sudo apt-get upgrade --no-remove || die 'APT upgrade failed; inspect native errors/held packages. Earlier changes remain.'
+            printf '%s\n' 'APT: upgrading ALL native packages, including Zsh/Git/Vim (sudo; --no-remove; --yes).' \
+                'APT confirmation is automatically accepted. No full-upgrade, release upgrade, autoremove, or reboot is requested.'
+            sudo apt-get upgrade --no-remove --yes || die 'APT upgrade failed; inspect native errors/held packages. Earlier changes remain.'
         fi
         ;;
     *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;

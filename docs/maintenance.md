@@ -14,6 +14,14 @@ Installation (`setup-core`, `setup-toolchains`), applying
 configuration (`install`), and maintenance are different actions. Nothing here
 runs on shell startup. The scripts work from Bash/Zsh without OMZ aliases/plugins.
 
+**Upgrade invocation is consent to automatic package-manager confirmation.**
+The helpers pass `--yes` to Homebrew and APT upgrades. uv/pipx upgrades already
+proceed without an upfront confirmation; macOS still requires one exact update
+label and has no general auto-confirm flag. This is not an unattended mode:
+authentication, configuration-file, installer, or other prompts may remain.
+No credentials are supplied, licenses automatically accepted, or force options
+added. Review candidates before invoking an upgrade.
+
 ## User tools: whole selected inventories
 
 ```sh
@@ -38,7 +46,7 @@ not a promise every installed item changes version.
   updates Homebrew itself**. It does not upgrade installed packages. uv/pipx
   have no equivalent required global metadata-refresh step here; their upgrade
   commands query their configured package indexes directly.
-- `upgrade` runs `brew upgrade --formula`, `uv tool upgrade --all`, and
+- `upgrade` runs `brew upgrade --formula --yes`, `uv tool upgrade --all`, and
   `pipx upgrade-all`, in that order. Homebrew auto-refresh and install cleanup
   are disabled to keep the explicit refresh/upgrade distinction. Refresh first;
   stale definitions otherwise mean stale upgrade candidates. No extra cleanup,
@@ -108,20 +116,23 @@ update-system refresh
 ### Ubuntu/Debian desktop and WSL
 
 `refresh` runs **`sudo apt-get update`**, refreshing configured repository indexes,
-not installed software. `upgrade` runs **`sudo apt-get upgrade --no-remove`**:
+not installed software. `upgrade` runs **`sudo apt-get upgrade --no-remove --yes`**:
 
 ```sh
 apt list --upgradable                  # inspection after refresh
 apt-get --simulate upgrade --no-remove # native preview; no sudo required
-update-system upgrade                 # review APT's normal confirmation
+update-system upgrade                 # APT confirmation is automatically accepted
 ```
 
 This is the **whole native package inventory**, including APT-owned Zsh/Git/Vim,
 bootstrap Python, libraries, services, and optional native applications. Those
 remain in privileged distribution maintenance even though some are conceptually
 user tools. Homebrew formulae remain in `update-tools`; neither manager upgrades
-the other's packages. `upgrade` does not implicitly refresh indexes, pass `-y`,
-remove packages, invoke `full-upgrade`/`dist-upgrade`, change distribution releases,
+the other's packages. `--yes` accepts APT's confirmation without pausing for
+review; use the simulation above first if you want a preview. It does not bypass
+sudo authentication or set debconf/dpkg configuration-answer policies.
+`upgrade` does not implicitly refresh indexes, remove packages, invoke
+`full-upgrade`/`dist-upgrade`, change distribution releases,
 run autoremove, or request a reboot. Held/dependency-transition packages can stay
 back for separate administrator review. Native package scripts can restart
 services and configured system policy may have additional effects; the helper
