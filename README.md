@@ -6,8 +6,8 @@ settings belong outside this checkout.
 
 ## Fresh setup
 
-Install Git, Zsh, and a Python version supported by Dotbot (Python 3 recommended)
-using your platform's package manager, then:
+Install Git, Zsh, Vim, and a Python version supported by Dotbot (Python 3
+recommended) using your platform's package manager, then:
 
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
@@ -35,6 +35,38 @@ automatically update Oh My Zsh, or audit missing commands. Some convenience
 aliases still require their corresponding tools/plugins (`j` needs `just`,
 `restart-podman` needs Podman, and `up` needs the relevant package-manager aliases
 and tools). Installation and updates are separate, explicit operations.
+
+## Editors
+
+Terminal Vim is the lightweight fallback editor in the core environment, for
+ordinary text and quick edits rather than a full development-editor setup.
+`./install` links `vimrc` to `~/.vimrc`; no Vundle, downloaded plugins, or external
+theme is required. The small built-in baseline enables filetype detection and
+indentation, syntax highlighting, autoindent, backspace across indentation and
+line boundaries, highlighted/incremental search, a status line, and line numbers.
+There is no blanket two-space indentation policy; built-in filetype rules and
+Vim defaults apply. Arrow keys and normal-mode navigation keep their defaults.
+
+In insert mode, type **`fd`** to return to normal mode. This is the only custom
+mapping, shared deliberately by Vim and IdeaVim.
+
+Vim's default recovery policy is unchanged: swap files are enabled and writes
+use the default temporary backup behavior (`writebackup`), not persistent backup
+copies (`backup` is off by default). Swap-file warnings after an interrupted
+session are not configuration errors. Use `vim -r path/to/file` to recover a
+buffer, inspect and save the recovered text, and remove the stale swap file only
+after recovery is complete and no other Vim session is using it. This is Vim's
+standard recovery, not a separate backup system; see `:help recovery`.
+
+IdeaVim is an **optional, independent** IDE preference. Dotbot links `ideavimrc`
+to `~/.ideavimrc`, whose only customization is the same `fd` mapping; it does not
+source terminal Vim settings or add Cursive actions, navigation, clipboard, or
+join overrides. The link is harmless without an IDE. Install a compatible
+JetBrains IDE and IdeaVim separately if wanted; neither IDE/plugin installation
+nor a full development-editor setup is part of core recovery. Start a new Vim
+session to load edits to `vimrc`; for IdeaVim, use `:source ~/.ideavimrc` or restart
+the IDE. When migrating an already-running IdeaVim session from the legacy
+configuration, restart the IDE to clear previously loaded mappings and options.
 
 ## Optional local configuration
 
