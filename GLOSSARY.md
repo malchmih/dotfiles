@@ -21,3 +21,10 @@ Optional machine-specific or non-public additions outside the shared configurati
 
 **Checkup**:
 An evidence-based assessment of the current machine's software and setup, covering correctness, improvement opportunities, core candidates, and cleanup candidates. Its outcome is advice, not changes to the environment.
+
+**Daily maintenance**:
+A user-initiated routine for reviewing and applying available updates to installed command-line tools, managed desktop applications, and native Linux packages. It includes awareness of available macOS updates, but not their installation, project dependency changes, or runtime selection.
+_Avoid_: Update everything
+
+**Cleanup**:
+A separately initiated, reviewed removal of obsolete package caches, old package versions, and dependencies considered unused by the package manager. It does not include deleting application preferences or personal data.

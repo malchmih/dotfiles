@@ -16,6 +16,12 @@
     ~/.local/bin/update-system:
       path: update-system
       create: true
+    ~/.local/bin/up:
+      path: up
+      create: true
+    ~/.local/bin/cleanup:
+      path: cleanup
+      create: true
     ${XDG_CONFIG_HOME}/opencode/AGENTS.md:
       path: opencode/AGENTS.md
       create: true

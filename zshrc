@@ -38,6 +38,11 @@ if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   source "$ZSH/oh-my-zsh.sh"
 fi
 
+# Repository maintenance commands win over plugin aliases/functions.
+# The later local preference phase can still override them deliberately.
+unalias up cleanup 2>/dev/null
+unfunction up cleanup 2>/dev/null
+
 # mise selects the active Node/Java runtimes.
 # No missing-runtime installation from activation, prompts, or command lookup.
 if (( $+commands[mise] )); then

@@ -3,26 +3,115 @@
 [Documentation index](../README.md#guides)
 
 After applying configuration with `./install` from the dotfiles checkout, run
-`update-tools` and `update-system` **from any directory**, as your ordinary account,
-after reading their scopes. Dotbot links only these two maintenance commands into
+`up`, `cleanup`, `update-tools`, and `update-system` **from any directory**, as your
+ordinary account, after reading their scopes. Dotbot links these commands into
 `~/.local/bin`, already on PATH in the configured Zsh sessions. Other shells need
 that directory on PATH too; no system-wide installation is performed. Keep the
 checkout in place because the links point into it. Before applying the links,
-you can still run `./update-tools` and `./update-system` from the checkout.
+you can still run `./up`, `./cleanup`, `./update-tools`, and `./update-system` from
+the checkout. Keep `lib/maintenance.sh` alongside the new entry points; they
+resolve installation symlinks to find this shared implementation.
 
 Installation (`setup-core`, `setup-toolchains`), applying
 configuration (`install`), and maintenance are different actions. Nothing here
 runs on shell startup. The scripts work from Bash/Zsh without OMZ aliases/plugins.
 
-**Upgrade invocation is consent to automatic package-manager confirmation.**
-The helpers pass `--yes` to Homebrew and APT upgrades. uv/pipx upgrades already
+## Daily maintenance: `up`
+
+```sh
+up --help
+up                           # refresh, review listings, approve once
+```
+
+This is the morning entry point across macOS and Ubuntu/Debian, including WSL.
+It covers **all eligible installed inventories**, including optional/work tools,
+not just this repository's core selections:
+
+| Inventory | Preview | Approved action |
+| --- | --- | --- |
+| Homebrew formulae | `brew outdated --formula` after `brew update` | `brew upgrade --formula --yes` |
+| Homebrew casks (macOS, when installed) | `brew outdated --cask` | `brew upgrade --cask --yes` |
+| uv tools | `uv tool list`; exact upgrade changes **unknown** | `uv tool upgrade --all` |
+| pipx apps | `pipx list`; exact upgrade changes **unknown** | `pipx upgrade-all` |
+| APT (Ubuntu/Debian) | `apt-get --simulate upgrade --no-remove` after index refresh | `sudo apt-get upgrade --no-remove --yes` |
+| macOS software updates | `softwareupdate --list` | **No installation** |
+
+- **Refresh happens before approval.** `brew update` can update Homebrew itself;
+  APT refresh runs `sudo apt-get -o APT::Update::Error-Mode=any update`. The error
+  mode treats failed repository fetches as failure, rather than silently accepting
+  a partially stale index. Declining approval does not undo refresh changes.
+- **Sudo is validated upfront when anticipated**, before metadata refresh or
+  update previews. APT work requires it. On macOS, installed casks trigger upfront
+  validation because their installers may require admin access; this intentionally
+  favors an early prompt over custom cask privilege prediction. Casks that do not
+  need it may therefore still cause a prompt. Macs without installed casks need
+  no upfront sudo. Brew itself is never run as root. Credential timeout or installer
+  policy can still cause later prompts; no password is captured or keepalive run.
+- **One approval covers eligible groups**, including uv/pipx's disclosed unknown
+  changes. Only `y`/`yes` (also `Y`/`YES`) proceeds; EOF or any other answer cancels.
+  There is no `--yes` bypass for the wrapper. These are native listings, not a
+  custom selectable package plan or a frozen transaction. Inventories, metadata,
+  and dependency resolution can change between preview and execution.
+- **Use native default update policies.** Pins/exclusions remain effective. No
+  `--greedy`, force, prerelease, full-upgrade, or distribution-release-upgrade
+  behavior is added. Normal cask behavior can quit/restart apps or otherwise
+  disrupt work. Save your work first; no `--no-quit` safety guarantee is offered.
+- **Homebrew's built-in cleanup is allowed.** The wrapper unsets inherited
+  `HOMEBREW_NO_INSTALL_CLEANUP` for its subprocesses, unlike `update-tools` below.
+  No explicit cleanup or autoremove command is part of `up`.
+- **Independent work continues after failures.** Failed refresh skips that
+  manager's upgrades; a failed preview skips the affected inventory (a failed
+  formula preview skips Homebrew upgrades). Failed sudo validation skips APT/casks
+  but permits independent unprivileged work. Failures are labeled and result in
+  nonzero exit status, even if other groups succeed or you later cancel. There is
+  no rollback. Missing optional managers are skipped; missing native APT is an error.
+- **Scope exclusions:** no App Store apps, runtime selection, project dependencies,
+  dotfiles pull, shell-framework update, Snap/Flatpak/vendor updater, or Windows-host
+  maintenance. Oh My Zsh retains its existing automatic update policy. Homebrew
+  may still update formula-owned runtimes, as explained under user tools below.
+  No machine reboot is requested; native package/installer scripts retain their
+  own service and system-policy behavior.
+
+Plugin aliases/functions named `up` or `cleanup` are removed after OMZ loads so
+the PATH commands remain accessible. The later local preference phase can still
+override them deliberately. Inspect `type -a up cleanup` if another command wins;
+`~/.local/bin/up` and `~/.local/bin/cleanup` explicitly select the installed scripts.
+
+## Separate housekeeping: `cleanup`
+
+```sh
+cleanup --help
+cleanup                      # preview removals, approve once
+```
+
+This does not run automatically from `up`. It previews **Homebrew autoremove**
+(`brew autoremove --dry-run`), **Homebrew cache/old-version cleanup**
+(`brew cleanup --dry-run`), and on Ubuntu/Debian **APT autoremove**
+(`sudo apt-get --simulate autoremove`). After one approval it runs
+`brew autoremove`, `brew cleanup`, and `sudo apt-get autoremove --yes` for eligible
+managers, in that order. On Linux, sudo is validated upfront. Failed previews skip
+their manager's removals; independent failures continue and give nonzero status.
+
+Review unused dependencies carefully: manually used software can still be marked
+automatically installed. Cache/old-version removal frees space but removes some
+local fallback material. Native dry runs are not frozen transactions, and the
+subsequent cleanup may differ after autoremove or concurrent changes. No metadata
+refresh, extra aggressive flags, cask `zap`, application-preference deletion, or
+personal-data cleanup is requested. Homebrew is optional; missing APT on supported
+Linux is an error. On macOS, this command does not need upfront sudo.
+
+## Lower-level maintenance commands
+
+These existing entry points remain available with their original separate scopes.
+**Their upgrade invocation is consent to automatic package-manager confirmation.**
+They pass `--yes` to Homebrew and APT upgrades. uv/pipx upgrades already
 proceed without an upfront confirmation; macOS still requires one exact update
 label and has no general auto-confirm flag. This is not an unattended mode:
 authentication, configuration-file, installer, or other prompts may remain.
 No credentials are supplied, licenses automatically accepted, or force options
 added. Review candidates before invoking an upgrade.
 
-## User tools: whole selected inventories
+### User tools: whole selected inventories
 
 ```sh
 update-tools --help
@@ -75,7 +164,7 @@ formula upgrades can also update Homebrew-owned Node/Python/etc. if you installe
 them; the command does not claim exclusive runtime ownership outside the chosen
 mise/uv workflow. Configured taps and package indexes remain user-owned.
 
-### OMZ and runtimes are distinct owners
+#### OMZ and runtimes are distinct owners
 
 Oh My Zsh retains `zstyle ':omz:update' mode auto` and its native cadence. For
 an immediate manual update, run **`omz update` in interactive Zsh**, with the
@@ -105,7 +194,7 @@ Upgrading mise/uv binaries is **not** selecting new runtime versions:
 See [toolchain ownership and trust](toolchains.md) and
 [interactive shell updates](interactive-shell.md#updates-and-history).
 
-## Native packages and OS: a separate privileged decision
+### Native packages and OS: a separate privileged decision
 
 ```sh
 update-system --help
@@ -113,7 +202,7 @@ update-system refresh
 # Review candidates and save work before the separate upgrade invocation.
 ```
 
-### Ubuntu/Debian desktop and WSL
+#### Ubuntu/Debian desktop and WSL
 
 `refresh` runs **`sudo apt-get update`**, refreshing configured repository indexes,
 not installed software. `upgrade` runs **`sudo apt-get upgrade --no-remove --yes`**:
@@ -150,7 +239,7 @@ or firmware. Windows Update and an intentional host-side `wsl --update` are
 separate Windows workflows; no `wsl --shutdown` or reboot is invoked here.
 Linux desktop kernel/service/reboot behavior cannot be assumed for WSL.
 
-### macOS
+#### macOS
 
 `refresh` runs **`softwareupdate --list`** without sudo to scan/list Apple updates.
 It does not refresh Homebrew or install anything. After reviewing the exact
@@ -171,11 +260,12 @@ sudo alone is not guaranteed sufficient on Apple Silicon. Use System Settings
 when required. No password is collected or passed through stdin by this script,
 and no reboot is requested; installation may remain incomplete pending one.
 
-### Optional native/GUI applications
+#### Optional native/GUI applications
 
-Homebrew **casks** and Mac App Store apps are intentionally outside both helpers:
+Homebrew **casks** and Mac App Store apps are intentionally outside both lower-level helpers:
 they are not formulae or Apple OS updates, and their installers may need admin
-approval or GUI interaction. Inspect owners and run these separately if wanted:
+approval or GUI interaction. `up` includes casks but not App Store apps. Inspect
+owners and use these separate native commands when wanted:
 
 ```sh
 brew outdated --cask
@@ -194,7 +284,7 @@ removed, migrated, or forcibly taken over by maintenance.
 ## Recovery, troubleshooting, and future scheduling
 
 - Update this checkout deliberately with Git after reviewing changes; new shell
-  sessions see symlinked configuration immediately. Neither helper pulls the
+  sessions see symlinked configuration immediately. No maintenance command pulls the
   dotfiles repo, changes Dotbot's pinned submodule, applies links, or changes the
   login shell. See [recovery](recovery.md) and [Dotbot updates](recovery.md#update-dotbot).
 - `./setup-core --check` diagnoses the selected core owners/PATH after recovery;
@@ -209,3 +299,11 @@ removed, migrated, or forcibly taken over by maintenance.
   policy. No jobs, timers, services, or scheduling subsystem are added or enabled
   here. This does not disable the retained component-native OMZ automatic updater
   or existing OS/application update policies.
+
+## Testing the wrappers
+
+Run `python3 -m unittest discover -s tests -v` from the checkout. Tests use an
+isolated PATH with fake managers and Linux identity fixtures; no real upgrade,
+cleanup, sudo authentication, or OS update is performed. Syntax/lint checks:
+`bash -n up cleanup lib/maintenance.sh` and
+`shellcheck up cleanup lib/maintenance.sh`.

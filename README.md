@@ -38,8 +38,10 @@ terminal does not already start Zsh; changing the account shell is a
 - **Startup does not install anything.** Missing optional integrations are
   skipped; shared configuration works without local files or Oh My Zsh.
 - **Maintenance commands work from any directory.** `./install` links
-  `update-tools` and `update-system` into `~/.local/bin`, on the configured Zsh
-  PATH. Setup/recovery helpers stay checkout-local; linking does not run updates.
+  `up`, `cleanup`, `update-tools`, and `update-system` into `~/.local/bin`, on the
+  configured Zsh PATH. Use `up` for reviewed daily updates and `cleanup` for
+  separately reviewed housekeeping. Setup/recovery helpers stay checkout-local;
+  linking does not run updates. See their [scopes](docs/maintenance.md) first.
 
 See [recovery and configuration deployment](docs/recovery.md) for repeat-run
 behavior, conflicts, diagnostics, and Dotbot updates.
@@ -55,7 +57,7 @@ behavior, conflicts, diagnostics, and Dotbot updates.
 | Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
 | Restore global OpenCode instructions and terminal preferences | [OpenCode preferences](docs/opencode.md) |
 | Opt into mise/uv, Node/Java, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
-| Update user tools or native packages with explicit scopes | [Maintenance](docs/maintenance.md) |
+| Run daily updates, reviewed cleanup, or scoped maintenance | [Maintenance](docs/maintenance.md) |
 
 The [glossary](GLOSSARY.md) defines the repository's scope and terminology.
 This repository retains the public-domain [license](LICENSE.md).

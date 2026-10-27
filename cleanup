@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Resolve Dotbot's symlink before loading the checkout-local implementation.
+source_path=${BASH_SOURCE[0]}
+while [[ -L $source_path ]]; do
+    source_dir=$(cd -P -- "$(dirname -- "$source_path")" && pwd) || exit 1
+    source_path=$(readlink "$source_path") || exit 1
+    [[ $source_path == /* ]] || source_path=$source_dir/$source_path
+done
+source_dir=$(cd -P -- "$(dirname -- "$source_path")" && pwd) || exit 1
+source "$source_dir/lib/maintenance.sh" || exit 1
+maintenance_main cleanup "$@"
