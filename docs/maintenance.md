@@ -47,7 +47,9 @@ not just this repository's core selections:
   Brew itself is never run as root. Credential timeout or installer policy can
   still cause later prompts; no password is captured or keepalive run.
 - **One approval covers eligible groups**, including uv/pipx's disclosed unknown
-  changes. Only `y`/`yes` (also `Y`/`YES`) proceeds; EOF or any other answer cancels.
+  changes. The prompt defaults to Yes (`[Y/n]`): Enter or `y`/`yes` (also
+  `Y`/`YES`) proceeds. A piped blank line also approves; EOF, `n`/`no`, or any
+  unrecognized answer cancels.
   There is no `--yes` bypass for the wrapper. These are native listings, not a
   custom selectable package plan or a frozen transaction. Inventories, metadata,
   and dependency resolution can change between preview and execution.
@@ -90,6 +92,10 @@ This does not run automatically from `up`. It previews **Homebrew autoremove**
 `brew autoremove`, `brew cleanup`, and `sudo apt-get autoremove --yes` for eligible
 managers, in that order. On Linux, sudo is validated upfront. Failed previews skip
 their manager's removals; independent failures continue and give nonzero status.
+
+Like `up`, the confirmation defaults to Yes (`[Y/n]`): Enter (including a piped
+blank line) or `y`/`yes` (also `Y`/`YES`) approves. EOF, `n`/`no`, and unrecognized
+answers cancel.
 
 Review unused dependencies carefully: manually used software can still be marked
 automatically installed. Cache/old-version removal frees space but removes some

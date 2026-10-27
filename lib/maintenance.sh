@@ -158,9 +158,9 @@ maintenance_main() {
     if [[ $brew_ready == 0 && $apt_ready == 0 && $uv_ready == 0 && $pipx_ready == 0 ]]; then
         printf '\n%s\n' 'No eligible changes to approve.'
     else
-        printf '\nApprove %s for the eligible inventories above? [y/N] ' "$action"
+        printf '\nApprove %s for the eligible inventories above? [Y/n] ' "$action"
         answer=''
-        if ! IFS= read -r answer || [[ $answer != y && $answer != Y && $answer != yes && $answer != YES ]]; then
+        if ! IFS= read -r answer || [[ -n $answer && $answer != y && $answer != Y && $answer != yes && $answer != YES ]]; then
             printf '\n%s\n' 'Cancelled; no approved upgrades/removals were run. Prior refresh changes remain.'
             [[ $failed == 0 ]]
             return

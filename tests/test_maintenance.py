@@ -134,7 +134,32 @@ class MaintenanceTests(unittest.TestCase):
         self.os_release.write_text('ID="debian"\n')
         self.assertEqual(self.run_command(platform="Linux").returncode, 0)
 
-    def test_cancel_or_eof_prevents_upgrades(self):
+    def test_enter_and_explicit_yes_approve_both_commands(self):
+        for command, actual in (("up", ["brew", "upgrade", "--formula", "--yes"]),
+                                ("cleanup", ["brew", "cleanup"])):
+            for answer in ("\n", "y\n", "Y\n", "yes\n", "YES\n"):
+                with self.subTest(command=command, answer=answer):
+                    self.log.unlink(missing_ok=True)
+                    result = self.run_command(command=command, answer=answer,
+                                              managers=("brew", "softwareupdate"))
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("[Y/n]", result.stdout)
+                    self.assertIn(actual, self.calls)
+
+    def test_eof_no_and_unrecognized_answers_cancel_both_commands(self):
+        for command in ("up", "cleanup"):
+            for answer in ("", "n\n", "N\n", "no\n", "NO\n", "maybe\n", " \n"):
+                with self.subTest(command=command, answer=answer):
+                    self.log.unlink(missing_ok=True)
+                    result = self.run_command(command=command, answer=answer,
+                                              managers=("brew", "softwareupdate"))
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("Cancelled", result.stdout)
+                    self.assertFalse(any(c[:2] == ["brew", "upgrade"] for c in self.calls))
+                    self.assertNotIn(["brew", "cleanup"], self.calls)
+                    self.assertNotIn(["brew", "autoremove"], self.calls)
+
+    def test_eof_prevents_upgrades_after_refresh(self):
         result = self.run_command(answer="")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn(["brew", "update"], self.calls)
