@@ -40,13 +40,12 @@ not just this repository's core selections:
   APT refresh runs `sudo apt-get -o APT::Update::Error-Mode=any update`. The error
   mode treats failed repository fetches as failure, rather than silently accepting
   a partially stale index. Declining approval does not undo refresh changes.
-- **Sudo is validated upfront when anticipated**, before metadata refresh or
-  update previews. APT work requires it. On macOS, installed casks trigger upfront
-  validation because their installers may require admin access; this intentionally
-  favors an early prompt over custom cask privilege prediction. Casks that do not
-  need it may therefore still cause a prompt. Macs without installed casks need
-  no upfront sudo. Brew itself is never run as root. Credential timeout or installer
-  policy can still cause later prompts; no password is captured or keepalive run.
+- **Authenticate upfront only for known privileged work.** APT work validates
+  sudo before metadata refresh or update previews. On macOS, `up` does not
+  prevalidate sudo or predict individual casks' privilege requirements. Homebrew
+  or a cask installer may request authorization during an upgrade if needed.
+  Brew itself is never run as root. Credential timeout or installer policy can
+  still cause later prompts; no password is captured or keepalive run.
 - **One approval covers eligible groups**, including uv/pipx's disclosed unknown
   changes. Only `y`/`yes` (also `Y`/`YES`) proceeds; EOF or any other answer cancels.
   There is no `--yes` bypass for the wrapper. These are native listings, not a
@@ -61,7 +60,7 @@ not just this repository's core selections:
   No explicit cleanup or autoremove command is part of `up`.
 - **Independent work continues after failures.** Failed refresh skips that
   manager's upgrades; a failed preview skips the affected inventory (a failed
-  formula preview skips Homebrew upgrades). Failed sudo validation skips APT/casks
+  formula preview skips Homebrew upgrades). Failed sudo validation skips APT
   but permits independent unprivileged work. Failures are labeled and result in
   nonzero exit status, even if other groups succeed or you later cancel. There is
   no rollback. Missing optional managers are skipped; missing native APT is an error.

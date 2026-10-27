@@ -32,7 +32,7 @@ maintenance_main() {
                     'Preview Homebrew autoremove/cleanup and Ubuntu/Debian APT autoremove, then approve once.' \
                     'No cask zap, application-preference deletion, or personal-data cleanup.'
             fi
-            printf '%s\n' 'Run as your ordinary user; sudo credentials are requested upfront when anticipated.' \
+            printf '%s\n' 'Run as your ordinary user; APT work validates sudo upfront; macOS installers may prompt as needed.' \
                 'Independent failures are reported without rollback. No automatic reboot is requested.' \
                 'Read docs/maintenance.md in the dotfiles checkout for scope and limitations.'
             return 0
@@ -46,7 +46,7 @@ maintenance_main() {
     fi
 
     local platform failed=0 brew_ready=0 apt_ready=0 casks=0 uv_ready=0 pipx_ready=0
-    local needs_sudo=0 sudo_ready=1 installed_casks answer
+    local needs_sudo=0 installed_casks answer
     case "$(uname -s)" in
         Darwin) platform=macos ;;
         Linux)
@@ -75,8 +75,6 @@ maintenance_main() {
             if installed_casks=$(brew list --cask); then
                 if [[ -n $installed_casks ]]; then
                     casks=1
-                    needs_sudo=1
-                    printf '%s\n' 'Installed casks may need administrator access; requesting sudo upfront.'
                 fi
             else
                 printf '%s\n' 'FAILED: Homebrew cask inventory; skipping cask upgrades.' >&2
@@ -97,9 +95,7 @@ maintenance_main() {
     fi
     if [[ $needs_sudo == 1 ]]; then
         if ! maintenance_run 'Validate sudo credentials before maintenance.' sudo -v; then
-            sudo_ready=0
             apt_ready=0
-            casks=0
             printf '%s\n' 'SKIP: privileged work after failed sudo validation; continuing independent work.'
         fi
     fi
@@ -172,7 +168,7 @@ maintenance_main() {
         if [[ $action == up ]]; then
             if [[ $brew_ready == 1 ]]; then
                 maintenance_run 'Homebrew: upgrade all eligible formulae (built-in cleanup allowed).' brew upgrade --formula --yes || :
-                if [[ $casks == 1 && $sudo_ready == 1 ]]; then
+                if [[ $casks == 1 ]]; then
                     maintenance_run 'Homebrew: upgrade all eligible casks (app disruption allowed).' brew upgrade --cask --yes || :
                 fi
             fi

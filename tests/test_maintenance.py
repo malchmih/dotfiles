@@ -97,7 +97,7 @@ class MaintenanceTests(unittest.TestCase):
     def test_macos_plan_approval_and_scope(self):
         result = self.run_command()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertLess(self.calls.index(["sudo", "-v"]), self.calls.index(["brew", "update"]))
+        self.assertFalse(any(c[0] == "sudo" for c in self.calls))
         self.assertLess(self.calls.index(["brew", "update"]), self.calls.index(["brew", "outdated", "--formula"]))
         self.assertLess(self.calls.index(["softwareupdate", "--list"]), self.calls.index(["brew", "upgrade", "--formula", "--yes"]))
         for call in (["brew", "upgrade", "--cask", "--yes"],
@@ -172,10 +172,20 @@ class MaintenanceTests(unittest.TestCase):
         self.assertFalse(any(c[0] == "apt-get" for c in self.calls))
         self.assertIn(["brew", "upgrade", "--formula", "--yes"], self.calls)
 
-    def test_failed_mac_sudo_skips_casks_only(self):
-        result = self.run_command(fail=[["sudo", "-v"]])
+    def test_mac_casks_do_not_require_upfront_sudo(self):
+        result = self.run_command(managers=("brew", "uv", "pipx", "softwareupdate"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any(c[0] == "sudo" for c in self.calls))
+        self.assertIn(["brew", "outdated", "--cask"], self.calls)
+        self.assertIn(["brew", "upgrade", "--cask", "--yes"], self.calls)
+        self.assertIn(["brew", "upgrade", "--formula", "--yes"], self.calls)
+
+    def test_failed_cask_upgrade_does_not_stop_independent_managers(self):
+        result = self.run_command(fail=[["brew", "upgrade", "--cask", "--yes"]])
         self.assertNotEqual(result.returncode, 0)
-        self.assertNotIn(["brew", "upgrade", "--cask", "--yes"], self.calls)
+        self.assertIn("FAILED: Homebrew: upgrade all eligible casks", result.stderr)
+        self.assertIn(["uv", "tool", "upgrade", "--all"], self.calls)
+        self.assertIn(["pipx", "upgrade-all"], self.calls)
         self.assertIn(["brew", "upgrade", "--formula", "--yes"], self.calls)
 
     def test_failed_cask_preview_skips_casks_only(self):
