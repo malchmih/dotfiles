@@ -24,3 +24,6 @@ substitution is a deferred option in [issue #16](https://github.com/malchmih/dot
 not a requirement of recovery. Custom themes, service state, credentials, provider
 configuration, and all other AI-client configuration are outside this deployment.
 Client installation and sign-in remain deliberate separate actions.
+When `$HOME/.opencode/bin` exists, shared Zsh startup adds it to PATH after
+`$HOME/.local/bin` and before package-manager commands. See
+[shell startup](local-configuration.md#startup-and-path) for precedence and overrides.

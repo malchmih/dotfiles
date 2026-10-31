@@ -8,6 +8,9 @@ if [[ "$OSTYPE" == darwin* ]]; then
   fi
 fi
 
-# Keep user-command precedence above package-manager commands.
+# Keep user-command precedence above package-manager commands after login setup.
 typeset -U path
+if [[ -d "$HOME/.opencode/bin" ]]; then
+  path=("$HOME/.opencode/bin" $path)
+fi
 path=("$HOME/.local/bin" $path)

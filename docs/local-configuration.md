@@ -61,17 +61,22 @@ environment automatically; GUI launchers may not start Zsh at all.
 
 ### PATH precedence and Homebrew
 
-The shared environment prepends `$HOME/.local/bin` and deduplicates `path`/`PATH`
-while keeping the first occurrence. On Linux, it also recognizes the standard
+The shared environment prepends `$HOME/.local/bin`, followed by
+`$HOME/.opencode/bin` if that directory exists, and deduplicates `path`/`PATH`
+while keeping the first occurrence. This makes an existing standalone OpenCode
+installation available in every Zsh without installing it. On Linux, it also
+recognizes the standard
 `/home/linuxbrew/.linuxbrew` prefix when its `bin/brew` is executable, putting
-its bin/sbin after `.local/bin` in every Zsh, including noninteractive sessions.
+its bin/sbin after the user directories in every Zsh, including noninteractive
+sessions.
 `.zprofile` restores user-command precedence after
 macOS's system login setup (`path_helper`) reorders PATH, with the selected
 Homebrew tools next (recognizing `/opt/homebrew`, then `/usr/local`, when `brew`
 exists there). Put general additional
 directories in local `env.zsh`, usually with `path+=("/some/bin")`. A prepend there
 can precede `.local/bin` in non-login shells, but login setup restores
-`.local/bin` first. Put final interactive precedence overrides in local
+`.local/bin` and the existing OpenCode directory first, in that order. Put final
+interactive precedence overrides in local
 `interactive.zsh`, using `path=("/some/bin" $path)`. Avoid repeatedly concatenating
 raw PATH strings. Tool managers may also adjust PATH in the interactive phase.
 
