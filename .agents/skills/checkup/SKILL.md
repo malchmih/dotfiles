@@ -63,6 +63,5 @@ evidenced within the stated scope—not that the whole machine is healthy.
 Report in chat by default. Write a file only if requested, after agreeing on its
 path and privacy; keep it outside repository documentation, preferably outside
 the checkout. Provide exact remediation commands only when asked, clearly marked
-as proposed and not executed. Never install, upgrade, remove, edit configuration,
-migrate, control services, or otherwise change the machine or repository. Do not
-create issues, commits, or inventories as part of Checkup. Stop after reporting.
+as proposed and not executed. Checkup never changes the machine or repository;
+do not create issues, commits, or inventories. Stop after reporting.
