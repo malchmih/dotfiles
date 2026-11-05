@@ -32,19 +32,20 @@ with open(os.environ["MOCK_MISE_LOG"], "a") as log:
 
 config = Path(os.environ["MOCK_MISE_CONFIG"])
 text = config.read_text()
+defaults = {
+    "auto_install": "true",
+    "not_found_system_fallback": "true",
+    "upgrade.auto_prune": "true",
+}
 
 if args[:2] == ["settings", "unset"]:
     key = args[2]
     text = re.sub(rf"(?m)^{re.escape(key)}\s*=.*\n?", "", text)
     config.write_text(text)
-elif args[:2] == ["settings", "set"]:
-    key, value = args[2:4]
-    pattern = rf"(?m)^{re.escape(key)}\s*=.*$"
-    if re.search(pattern, text):
-        text = re.sub(pattern, f"{key} = {value}", text)
-    else:
-        text = text.replace("[settings]\n", f"[settings]\n{key} = {value}\n", 1)
-    config.write_text(text)
+elif args[:2] == ["settings", "get"]:
+    key = args[2]
+    match = re.search(rf"(?m)^{re.escape(key)}\s*=\s*(.+)$", text)
+    print(match.group(1).strip() if match else defaults[key])
 elif args and args[0] == "use":
     exact_pin = (
         "--pin" in args
@@ -168,6 +169,17 @@ class SetupToolchainsTests(unittest.TestCase):
     def mise_events(self):
         return [json.loads(line) for line in self.mise_log.read_text().splitlines()]
 
+    def effective_setting(self, key):
+        result = subprocess.run(
+            [str(self.mise_bin / "mise"), "settings", "get", key],
+            cwd=self.home,
+            env=self.env,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout.strip()
+
     def test_setup_resets_legacy_settings_and_selects_floating_global_defaults(self):
         local_before = self.local_config.read_bytes()
         project_before = self.project_config.read_bytes()
@@ -184,6 +196,17 @@ class SetupToolchainsTests(unittest.TestCase):
             "upgrade.auto_prune = false",
         ):
             self.assertNotIn(obsolete, config)
+        self.assertEqual(
+            {
+                key: self.effective_setting(key)
+                for key in ("auto_install", "not_found_system_fallback", "upgrade.auto_prune")
+            },
+            {
+                "auto_install": "true",
+                "not_found_system_fallback": "true",
+                "upgrade.auto_prune": "true",
+            },
+        )
         self.assertIn("pin = true", config)
         self.assertIn("jobs = 3", config)
         for request in ('node = "latest"', 'java = "latest"', 'python = "latest"'):
