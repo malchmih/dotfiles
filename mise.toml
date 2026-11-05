@@ -34,13 +34,15 @@ for executable in bash zsh shellcheck python; do
     fi
 done
 
+set -- cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh
+
 printf '%s\n' 'Checking Bash syntax...'
-for script in cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh; do
+for script in "$@"; do
     bash -n "$script"
 done
 
 printf '%s\n' 'Running ShellCheck...'
-shellcheck cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh
+shellcheck "$@"
 
 printf '%s\n' 'Checking Zsh syntax...'
 for startup in zshenv zprofile zshrc; do
