@@ -2,10 +2,12 @@
 
 [Documentation index](../README.md#guides)
 
-Core recovery and the local shell layer work independently of runtimes. Neither
-`./setup-core`, `mise dot apply`, nor shell startup invokes `./setup-toolchains` or
-installs runtimes. No scheduler, blanket trust, profile/context framework, global
-Gradle, Python runtime, or Python application is added by this workflow.
+Core recovery applies only the explicitly selected packages, repositories, and
+dotfiles phases. It excludes the tools and bootstrap-task phases. Neither that
+recovery command, direct `mise dot apply`, nor shell startup invokes
+`./setup-toolchains` or installs Node/Java runtimes. No scheduler, blanket trust,
+profile/context framework, global Gradle, Python runtime, or Python application is
+added by this workflow.
 
 ## Explicit opt-in
 
@@ -99,7 +101,7 @@ verifies that it wins PATH resolution; it never installs or marks mise with
 Homebrew. It installs only missing Homebrew `uv`, marks `uv` as
 explicitly requested (including if previously a dependency), and retains its
 installed version. Homebrew auto-refresh, cleanup, and installed-dependent checks
-are disabled just as in core setup. Required dependencies may still be installed
+are disabled for this `uv` install. Required dependencies may still be installed
 or upgraded; this is not a lock or transaction. Visible partial progress is kept
 on failure; fix the cause and rerun. There is no `--check`/dry-run mode for this
 action: `--help` is informational; invoking setup is an installation/selection request.

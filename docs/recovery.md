@@ -3,43 +3,49 @@
 [Documentation index](../README.md#guides)
 
 Recovery restores a useful core environment, not identical versions or an entire
-workstation. Installing tools, applying shared configuration, and choosing an
-account shell are separate actions. Language runtimes, full IDE setup, desktop
-customization, and private configuration backups remain outside core recovery.
+workstation. The root `mise.toml` declares core packages, the Oh My Zsh checkout,
+and shared configuration links. The documented recovery command selects those
+phases explicitly; choosing an account shell and selecting optional runtimes are
+separate actions. Full IDE setup, desktop customization, and private
+configuration backups remain outside core recovery.
 
 ## Bootstrap prerequisites
 
-Use a maintained macOS or Ubuntu/Debian desktop/WSL Linux release, an ordinary
-user account with a writable home, and working HTTPS access to GitHub and package
-repositories. Native Windows and Arch/Manjaro are not current targets. WSL means
-running these commands **inside the Linux distribution**, preferably WSL 2, not
-PowerShell or Git Bash.
+Use Apple Silicon macOS or a maintained Ubuntu/Debian desktop or WSL Linux on
+x86_64 or ARM64, an ordinary user account with a writable home, and working HTTPS
+access to GitHub and package repositories. Intel Macs, native Windows, and
+Arch/Manjaro are outside the supported recovery boundary. WSL means running
+these commands **inside the Linux distribution**, preferably WSL 2, not
+PowerShell or Git Bash. Package-manager support tiers, distribution releases,
+and Homebrew bottle availability still apply. The config has no custom strict
+platform guard or Intel-Mac fallback: mise may report resources as skipped when
+a package manager is unavailable. A skipped resource is not a complete recovery
+on an unsupported machine.
 
 Before cloning this repository:
 
 - **macOS:** install Apple's Command Line Tools (`xcode-select --install`, then
   finish the dialog) to obtain bootstrap Git. Bash and Zsh ship with macOS.
   Install [Homebrew](https://brew.sh/) after reviewing its instructions. Do not
-  run ordinary `brew` or `./setup-core` with sudo.
-- **Ubuntu/Debian:** have an administrator run `apt-get update` and
-  `apt-get install git bash ca-certificates build-essential procps curl file sudo`
-  (normally via `sudo`). These packages provide cloning, HTTPS trust, and
-  Homebrew's native build prerequisites. Then install
+  run ordinary `brew` with sudo.
+- **Ubuntu/Debian:** have an administrator install APT, bootstrap Git, HTTPS
+  trust, and Homebrew's native build prerequisites, for example
+  `git bash ca-certificates build-essential procps curl file sudo` (normally
+  with `sudo apt-get`). Then install
   [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux) as your ordinary user.
-  Core setup needs sudo only if APT-owned core packages are missing or existing
-  core packages need to be marked as manually installed.
-- **Both:** put Homebrew on the current shell's PATH using the installer's
-  printed `eval "$(.../bin/brew shellenv)"` command. The usual prefixes are
-  `/opt/homebrew` (Apple Silicon), `/usr/local` (Intel Mac), and
-  `/home/linuxbrew/.linuxbrew` (Linux). Homebrew remains a separate prerequisite
-  for the current core setup and maintenance commands; standalone mise does not
-  replace the Homebrew CLI.
+- **Both:** put the Homebrew CLI on the current shell's PATH using the installer's
+  printed `eval "$(.../bin/brew shellenv)"` command. The usual supported prefixes
+  are `/opt/homebrew` (Apple Silicon) and `/home/linuxbrew/.linuxbrew` (Linux).
+  The CLI remains required for shell integrations and existing maintenance
+  commands. mise's built-in Homebrew package backend installs into a compatible
+  prefix without invoking `brew`; it does not replace this CLI prerequisite.
 
-Install standalone mise before applying shared configuration, using the
+Install standalone mise before recovery, using the
 [official installer instructions](toolchains.md#standalone-mise-prerequisite).
-The repository does not install or update mise as a side effect of configuration
-deployment. Existing Homebrew mise users should follow the documented
-dependent-check and executable migration procedure before removing the formula.
+The repository does not install or update mise during bootstrap or shell startup.
+Do not install Homebrew-owned mise alongside it. Existing Homebrew mise users
+should follow the documented dependent-check and executable migration procedure
+before removing the formula.
 
 Homebrew is not installed automatically. Check its current
 [installation requirements](https://docs.brew.sh/Installation) and
@@ -57,43 +63,47 @@ Homebrew installations or enable distribution repositories for you.
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
 cd dotfiles
-brew update                 # refresh Homebrew and definitions, not packages
-./setup-core                # install missing core tools; clone Oh My Zsh if absent
-./setup-core --check         # inspect ownership, PATH, and executable versions
-# Review mise.toml before trusting this checkout.
+# Review mise.toml and the existing system/global mise config before trusting.
 mise trust
-mise config ls               # inspect merged mise configuration
-mise dot apply --dry-run    # preview shared links
-mise dot apply              # apply shared links only
-mise dot status --verbose   # inspect declared link state
+mise config ls
+mise bootstrap --only packages,repos,dotfiles --dry-run
+mise bootstrap --only packages,repos,dotfiles
+mise bootstrap status
+mise dot status --verbose
 ```
 
 The [tool inventory](core-tools.md) lists selected packages and their owners.
-Bootstrap needs Git before setup can install the selected Git. Setup explicitly
-lists all core packages even if they were once installed as dependencies. It
-keeps installed selected packages, marks Homebrew core formulae as requested
-and existing automatic APT core packages as manually installed (protecting both
-from autoremove), installs only missing ones, and never runs a broad upgrade or
-cleanup. APT refreshes indexes only when packages are missing; `--no-upgrade
---no-remove` protects already-installed packages from upgrades and removals.
+The core configuration declares latest Homebrew formulae on Apple Silicon macOS
+and the existing APT/Homebrew split on supported Linux. Native `apply` installs
+missing packages while an installed version satisfies a `latest` declaration;
+upgrades are explicit and use the existing maintenance workflow. Installing a
+missing formula can still resolve or install its required dependencies. Package
+application is not a transaction, and failures can leave earlier bootstrap phases
+applied; inspect native status and rerun after resolving the reported issue.
 
-Homebrew auto-refresh and installed-dependent checks are disabled for setup;
-installing a missing formula may still install or upgrade a dependency required
-by that formula. This is not a version lock or a package transaction. Failures
-leave visible partial progress; fix the reported cause and rerun. `--check`
-neither installs packages nor clones/updates Oh My Zsh.
+The packages, repositories, and dotfiles phases are selected explicitly. This
+excludes `[tools]`, the `bootstrap` task, automatic shell activation, and account
+shell changes, but `--only` is not repository isolation: mise still merges the
+normal system/global/project configuration and applicable hooks. Review the files
+listed by `mise config ls` and any applicable hooks before applying. The command
+does not pass `--update` or `--upgrade`: ordinary recovery does not broadly
+upgrade packages or fast-forward the Oh My Zsh checkout.
 
-Oh My Zsh is an explicit exception to package management: setup clones its
-[upstream repository](https://github.com/ohmyzsh/ohmyzsh#manual-installation)
-into `${ZSH:-$HOME/.oh-my-zsh}`. It does **not** invoke the upstream installer,
-copy a `.zshrc` template, run Zsh, or call `chsh`. An existing readable installation
-is kept without fetching or resetting it. An incomplete existing path, including
-a broken symlink, is reported for inspection, never deleted/replaced. If using
-a nondefault `ZSH`, export the same value during setup and in local `env.zsh`
-before interactive startup.
+The native repository declaration clones the unpinned
+[Oh My Zsh upstream repository](https://github.com/ohmyzsh/ohmyzsh#manual-installation)
+shallowly when missing. A clean existing checkout with the matching origin is
+left at its current commit by ordinary apply; it is not reset or updated. A dirty
+or untracked checkout, a different origin, or a non-Git path is a native conflict
+that stops repository application before changes. Inspect such state yourself;
+do not force or replace it. The upstream installer is not run, no `.zshrc`
+template is copied, Zsh is not launched, and `chsh` is not called. By default the
+checkout is `${ZSH:-$HOME/.oh-my-zsh}`; if using a custom absolute or `~/` `ZSH`
+path, export the same value when running mise bootstrap and in local `env.zsh`
+before interactive startup. The existing OMZ automatic updater policy remains
+unchanged; daily maintenance does not update this checkout.
 
-After applying configuration, open a new terminal and repeat `./setup-core --check`.
-Try `zsh -l` if the terminal does not already start Zsh. Optional next steps:
+After recovery, open a new terminal and inspect native status if needed. Try
+`zsh -l` if the terminal does not already start Zsh. Optional next steps:
 
 - [Scaffold local configuration](local-configuration.md#create-local-files) for
   incremental machine-specific additions; no local files are required.
@@ -125,12 +135,13 @@ is relative to that file, so sources continue to follow the checkout location:
 Before trusting a checkout, review its `mise.toml`. mise merges project
 configuration with your existing global and system configuration; trust does
 not isolate the repository. After trust, `mise config ls` lists the loaded
-configuration files. This checkout declares links only. `mise dot apply` runs
-the native dotfiles phase, not package/repository/tool bootstrap or task phases.
-It does not provision packages, select runtimes, run maintenance, or change the
-account shell. Review any applicable `pre-dotfiles` or `post-dotfiles` hooks and
-history reload commands from the merged configuration, since those remain
-native mise behavior. From the checkout, the deployment workflow is:
+configuration files. This checkout also declares core packages and the Oh My Zsh
+repository. The documented recovery command selects packages, repositories, and
+dotfiles only. Direct `mise dot apply` still runs only the native dotfiles phase;
+it does not provision packages or repositories, select runtimes, run maintenance,
+or change the account shell. Review applicable hooks and history reload commands
+from merged configuration, since those remain native mise behavior. To apply
+shared links alone from the checkout:
 
 ```sh
 mise trust
@@ -168,7 +179,7 @@ checkout available because links point into it. If you move the checkout, run
 also create their parent directory; Zsh puts `~/.local/bin` on PATH, so the
 commands work from any directory and resolve their shared implementation through
 the checkout symlink. Linking them does not run them; see
-[maintenance](maintenance.md) before use. Setup/recovery helpers remain
+[maintenance](maintenance.md) before use. The optional toolchain helper remains
 checkout-local. See [OpenCode preferences](opencode.md) for scope and
 application-written edits.
 
@@ -195,21 +206,27 @@ changes the account shell.
 
 ## Diagnose an incomplete recovery
 
-`mise dot status --verbose` reports the state of declared links; it is not a full
-shell-correctness check. `./setup-core --check` separately inspects current core
-package ownership, command paths and versions, integration scripts, and Oh My
-Zsh.
+`mise bootstrap status` reports declared bootstrap state, while
+`mise dot status --verbose` reports declared links. Focused native checks are
+`mise bootstrap packages status`, `mise bootstrap repos status`, and the dot
+status command. Aggregate bootstrap status can include optional resources from
+merged global configuration, and unavailable managers/resources may be reported
+as skipped. Status does not check command ownership, PATH, executable versions,
+shell integrations, or full shell correctness; skipped resources do not establish
+complete recovery on an unsupported platform.
 
 If a command is missing or resolves to another owner's executable, inspect
-`type -a git` (or the reported command). Deliberately fix PATH/ownership; setup
-never uninstalls or migrates competing copies. Apple system binaries remain
-intact, but selected Homebrew tools should resolve first.
+`type -a git` (or the reported command). Deliberately resolve PATH/ownership
+conflicts; native bootstrap does not uninstall or migrate competing copies.
+Apple system binaries remain intact, but selected Homebrew tools should resolve
+first.
 
-Setup does not edit its parent shell's PATH. Before shared links are applied,
-use Homebrew's printed shellenv instructions. After application, check actual
-fresh-shell resolution. For standard prefixes, custom prefixes, or noninteractive
-access, see [PATH precedence and Homebrew](local-configuration.md#path-precedence-and-homebrew).
-Startup never installs packages or audits missing commands; use diagnostics
-deliberately. Feature-specific checks live in the [shell guide](interactive-shell.md#missing-components--deliberate-checks).
+Recovery does not edit shell startup activation or its parent shell's PATH. Put
+Homebrew on PATH with its printed shellenv instructions and check actual
+fresh-shell resolution after applying links. For standard prefixes, custom
+prefixes, or noninteractive access, see
+[PATH precedence and Homebrew](local-configuration.md#path-precedence-and-homebrew).
+Startup never installs packages or audits missing commands; use native status
+and feature-specific checks from the [shell guide](interactive-shell.md#missing-components--deliberate-checks).
 
 For routine dotfiles and package updates, see [maintenance](maintenance.md).

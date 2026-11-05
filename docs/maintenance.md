@@ -12,10 +12,10 @@ you can still run `./up`, `./cleanup`, `./update-tools`, and `./update-system` f
 the checkout. Keep `lib/maintenance.sh` alongside the entry points; `up` and
 `cleanup` resolve their deployment symlinks to find this shared implementation.
 
-Installation (`setup-core`, `setup-toolchains`), applying
-configuration (`mise dot apply`), and maintenance are different actions. Nothing
-here runs on shell startup. The scripts work from Bash/Zsh without OMZ
-aliases/plugins.
+Core recovery (`mise bootstrap --only packages,repos,dotfiles`), optional toolchain
+setup (`setup-toolchains`), applying configuration alone (`mise dot apply`), and
+maintenance are different actions. Nothing here runs on shell startup. The
+scripts work from Bash/Zsh without OMZ aliases/plugins.
 
 ## Daily maintenance: `up`
 
@@ -176,7 +176,7 @@ Oh My Zsh retains `zstyle ':omz:update' mode auto` and its native cadence. For
 an immediate manual update, run **`omz update` in interactive Zsh**, with the
 desired `ZSH` checkout loaded. It updates OMZ, bundled plugins, and awesomepanda,
 not external Homebrew-packaged plugins. Missing OMZ does not block the scripts;
-core recovery can install it later. The helper deliberately does not launch an
+core recovery can clone it later. The helper deliberately does not launch an
 interactive shell (which could trigger local code and the automatic updater).
 
 Upgrading mise/uv binaries is **not** selecting new runtime versions:
@@ -294,11 +294,13 @@ removed, migrated, or forcibly taken over by maintenance.
   sessions see symlinked configuration immediately. No maintenance command pulls
   the dotfiles repo, applies links, or changes the login shell. See
   [recovery](recovery.md) for native mise deployment and status commands.
-- `./setup-core --check` diagnoses the selected core owners/PATH after recovery;
-  it is not an updater. On errors inspect manager-native output, `type -a`,
-  `brew doctor`, available disk space, repository/index access, configured pins,
-  and environment ownership. Do not fix failures by indiscriminate sudo, deleting
-  runtimes/locks, or reinstalling apps under another manager.
+- `mise bootstrap status`, `mise bootstrap packages status`,
+  `mise bootstrap repos status`, and `mise dot status --verbose` inspect native
+  declared state; they are not shell-correctness or PATH/version checks. On errors
+  inspect manager-native output, `type -a`, `brew doctor`, available disk space,
+  repository/index access, configured pins, and environment ownership. Do not fix
+  failures by indiscriminate sudo, deleting runtimes/locks, or reinstalling apps
+  under another manager.
 - Optional scheduling is **future work only**. If later wanted, choose manager
   scopes, notifications/logs, network/session PATH, credentials, failure policy,
   and a safe maintenance window before designing a cron/launchd/systemd job.

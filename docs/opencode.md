@@ -2,7 +2,7 @@
 
 [Documentation index](../README.md#guides)
 
-OpenCode is an optional client, not a `setup-core` package. The native
+OpenCode is an optional client, not a core recovery package. The native
 `mise dot apply` command deploys two global preference files whether or not the
 client is installed:
 

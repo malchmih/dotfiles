@@ -56,11 +56,13 @@ first, then investigate evidence-backed leads instead of scanning indiscriminate
 
 Discover managers and applications beyond the curated optional inventory when
 present; that inventory is neither a full machine manifest nor a requirement to
-install everything listed. Read a repo check before executing it. Reuse
-`./setup-core --check` only after verifying its current implementation and the
-resolved tools satisfy the inspection rules; it is a narrow check, not proof of
-overall correctness. Inspect deployment links directly instead of running the
-installer as a diagnostic.
+install everything listed. Review the loaded mise configuration before using
+`mise bootstrap packages status`, `mise bootstrap repos status`, or
+`mise dot status --verbose` as native declared-state diagnostics. Review trusted
+dotfile templates first because status can render them. Aggregate
+`mise bootstrap status` may include optional global resources; status does not
+prove shell correctness or command resolution. Inspect deployment links directly
+instead of running an apply command as a diagnostic.
 
 Keep this a software/setup review: general security posture, vulnerability or
 malware scans, hardware health, performance benchmarking, and employer-policy

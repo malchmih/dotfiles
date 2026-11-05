@@ -3,11 +3,10 @@
 [Documentation index](../README.md#guides)
 
 The shared shell keeps Zsh, Oh My Zsh (OMZ), **awesomepanda**, and ordinary local
-history. `./setup-core` explicitly installs Homebrew `fzf`,
-`zsh-autosuggestions`, and `zsh-syntax-highlighting` on macOS and Linux. This
-uses the existing current-release policy, including on Ubuntu/Debian: APT still
-owns Zsh there, while Homebrew owns the three enhancements. No new plugin
-manager, custom widgets, special font, or history service is involved.
+history. The repository's native mise declarations install `fzf`,
+`zsh-autosuggestions`, and `zsh-syntax-highlighting` with the Homebrew backend on
+supported macOS and Linux. On Ubuntu/Debian, APT remains the owner of Zsh. No new
+plugin manager, custom widgets, special font, or history service is involved.
 
 ## Try it in a fresh terminal
 
@@ -78,8 +77,9 @@ brew update
 brew upgrade fzf zsh-autosuggestions zsh-syntax-highlighting
 ```
 
-Setup only installs missing packages; it does not upgrade these on repeat runs.
-No broad OS/package upgrade is needed to try the features. See the
+Native mise apply installs missing selections and leaves already-installed
+versions alone; it does not upgrade these on repeat runs. No broad OS/package
+upgrade is needed to try the features. See the
 [source/update-owner table](core-tools.md#selected-sources-and-update-owners).
 For deliberate whole-inventory user-tool upgrades, see the separate
 [maintenance commands](maintenance.md).
@@ -101,10 +101,12 @@ fzf is absent its plugin is skipped; `Ctrl-R` retains OMZ/base incremental histo
 search. Unreadable/missing packaged scripts are skipped independently. The shell
 remains useful but is not claiming all enhancements are installed.
 
-Use `./setup-core --check` deliberately: it reports missing packages, unreadable
-integration scripts, selected executable paths/versions, and incomplete OMZ.
-Resolve PATH or conflicting owners before rerunning `./setup-core`; no startup
-installation or automatic takeover of another manager's package is performed.
+Use `mise bootstrap packages status`, `mise bootstrap repos status`, and
+`mise dot status --verbose` to inspect native declared state. These commands do
+not check command PATH/version resolution, shell integration files, or overall
+shell correctness. Resolve PATH or ownership conflicts deliberately; startup
+does not install packages, and ordinary bootstrap does not update or replace an
+existing Oh My Zsh checkout.
 In a fresh interactive shell, inspect:
 
 ```zsh

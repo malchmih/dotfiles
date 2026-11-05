@@ -1,3 +1,29 @@
+# Native core package selections; "latest" is a request, not a version pin.
+[bootstrap.packages]
+# mise's built-in Homebrew backend supports these Apple Silicon/Linux targets.
+"brew:gh" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:ripgrep" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:httpie" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:fzf" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:zsh-autosuggestions" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:zsh-syntax-highlighting" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:zsh" = { version = "latest", os = "macos/arm64" }
+"brew:git" = { version = "latest", os = "macos/arm64" }
+"brew:vim" = { version = "latest", os = "macos/arm64" }
+
+# Linux keeps the existing APT ownership for foundational shell/editor tools.
+"apt:zsh" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
+"apt:git" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
+"apt:vim" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
+
+# A process ZSH override keeps the checkout aligned with the shell preference.
+[vars]
+ZSH = { default = "~/.oh-my-zsh" }
+
+[bootstrap.repos]
+"{{ vars.ZSH }}" = { url = "https://github.com/ohmyzsh/ohmyzsh.git", depth = 1 }
+
+# There are intentionally no core [tools], bootstrap tasks, or shell edits.
 # Shared configuration sources are relative to this repository-root file.
 [dotfiles]
 "~/.vimrc" = { source = "vimrc", mode = "symlink" }

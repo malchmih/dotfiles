@@ -6,7 +6,8 @@
 
 Terminal Vim is the lightweight fallback editor in the core environment, for
 ordinary text and quick edits rather than a full development-editor setup.
-[Core setup](recovery.md) installs Vim; `mise dot apply` links `vimrc` to `~/.vimrc`.
+Core recovery declares Vim for native mise provisioning; `mise dot apply` links
+`vimrc` to `~/.vimrc`.
 No Vundle, downloaded plugins, or external theme is required.
 
 The small built-in baseline enables filetype detection and indentation, syntax

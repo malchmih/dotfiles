@@ -2,12 +2,13 @@
 
 [Documentation index](../README.md#guides)
 
-`./setup-core` explicitly installs the core selections below. It is not run by
-shell startup or `mise dot apply`; see [recovery](recovery.md) for prerequisites,
-setup/repeat-run behavior, configuration deployment, and diagnostics. No task
+The repository-root `mise.toml` declares the core package selections and Oh My
+Zsh checkout for native mise bootstrap. The documented recovery command applies
+the packages, repositories, and dotfiles phases explicitly; shell startup and a
+direct `mise dot apply` do not provision packages. See [recovery](recovery.md)
+for prerequisites, preview/apply, repeat-run behavior, and diagnostics. No task
 runner, container engine, language toolchain, or GUI application is required.
-Shell enhancements are core selections but remain optional at startup if not
-yet installed.
+Shell enhancements remain optional at startup if they are not yet installed.
 
 Enhanced tools keep their own names: use `rg` and `http` explicitly. Nothing here
 aliases them over `grep`, `find`, `cat`, or other familiar commands. Convenience
@@ -16,33 +17,35 @@ Podman. Their presence does not make either tool a core dependency.
 
 ## Selected sources and update owners
 
-Current releases are preferred; core packages are not version-pinned. Homebrew
-owns the current standalone CLI releases. On Linux, APT is the deliberate
-native-packaging exception for the shell, foundational Git, and fallback editor:
-distribution integration, security/support lifecycle, and fewer foundational
-Homebrew dependencies outweigh upstream freshness. Their versions follow the
-supported distribution, not necessarily upstream's latest release.
+The declarations use the unpinned `latest` package state. Native mise apply
+installs missing packages and accepts any installed version; it does not broadly
+upgrade installed selections. The built-in Homebrew backend installs into a
+Homebrew-compatible prefix without invoking the `brew` CLI; installed formulae
+remain visible to the CLI in that prefix. Keep the CLI on PATH for shell
+integrations and the existing maintenance commands. On Linux, APT is the
+deliberate native-packaging exception for the shell, foundational Git, and
+fallback editor: distribution integration and support lifecycle outweigh
+upstream freshness, so their versions follow the supported distribution.
 
-| Core component / command | macOS source and update owner | Ubuntu/Debian source and update owner |
+| Core component / command | macOS provisioning / update | Ubuntu/Debian provisioning / update |
 | --- | --- | --- |
-| Zsh / `zsh` | Homebrew `zsh`; `brew upgrade zsh` | APT `zsh`; distribution package maintenance |
-| Git / `git` | Homebrew `git`; `brew upgrade git` (Apple Git is bootstrap only) | APT `git`; distribution package maintenance |
-| GitHub CLI / `gh` | Homebrew `gh`; `brew upgrade gh` | Homebrew `gh`; `brew upgrade gh` |
-| ripgrep / `rg` | Homebrew `ripgrep`; `brew upgrade ripgrep` | Homebrew `ripgrep`; `brew upgrade ripgrep` |
-| HTTPie / `http`, `https` | Homebrew `httpie`; `brew upgrade httpie` | Homebrew `httpie`; `brew upgrade httpie` |
-| fzf / `fzf` and OMZ integration | Homebrew `fzf`; `brew upgrade fzf` | Same Homebrew formula/update owner |
-| Inline autosuggestions | Homebrew `zsh-autosuggestions`; `brew upgrade zsh-autosuggestions` | Same Homebrew formula/update owner |
-| Syntax highlighting | Homebrew `zsh-syntax-highlighting`; `brew upgrade zsh-syntax-highlighting` | Same Homebrew formula/update owner |
-| Vim / `vim` | Homebrew `vim`; `brew upgrade vim` (Apple Vim remains available) | APT `vim`; distribution package maintenance |
-| Oh My Zsh | Upstream Git checkout; `omz update` in interactive Zsh | Same upstream checkout/updater |
+| Zsh / `zsh` | mise `brew:zsh`; Homebrew CLI `brew upgrade zsh` (Apple Zsh remains available) | mise `apt:zsh`; distribution package maintenance |
+| Git / `git` | mise `brew:git`; Homebrew CLI `brew upgrade git` (Apple Git is bootstrap only) | mise `apt:git`; distribution package maintenance |
+| GitHub CLI / `gh` | mise `brew:gh`; Homebrew CLI `brew upgrade gh` | mise `brew:gh`; Homebrew CLI `brew upgrade gh` |
+| ripgrep / `rg` | mise `brew:ripgrep`; Homebrew CLI `brew upgrade ripgrep` | mise `brew:ripgrep`; Homebrew CLI `brew upgrade ripgrep` |
+| HTTPie / `http`, `https` | mise `brew:httpie`; Homebrew CLI `brew upgrade httpie` | mise `brew:httpie`; Homebrew CLI `brew upgrade httpie` |
+| fzf / `fzf` and OMZ integration | mise `brew:fzf`; Homebrew CLI `brew upgrade fzf` | mise `brew:fzf`; Homebrew CLI `brew upgrade fzf` |
+| Inline autosuggestions | mise `brew:zsh-autosuggestions`; Homebrew CLI targeted upgrade | mise `brew:zsh-autosuggestions`; Homebrew CLI targeted upgrade |
+| Syntax highlighting | mise `brew:zsh-syntax-highlighting`; Homebrew CLI targeted upgrade | mise `brew:zsh-syntax-highlighting`; Homebrew CLI targeted upgrade |
+| Vim / `vim` | mise `brew:vim`; Homebrew CLI `brew upgrade vim` (Apple Vim remains available) | mise `apt:vim`; distribution package maintenance |
+| Oh My Zsh | Unpinned shallow mise repository checkout; existing `omz update` policy | Same checkout and updater |
 
 Refresh Homebrew itself and definitions deliberately with `brew update` before
-targeted `brew upgrade <formula...>`; setup is not an update command. Keep
-APT-owned tools with OS/distribution maintenance: review `sudo apt-get update`
-and an explicit targeted `sudo apt-get install --only-upgrade zsh git vim`.
-Native package maintenance is distinct from Homebrew user-tool maintenance and
-from OS release upgrades/reboots. Apple system Git/Zsh/Vim are owned by
-macOS/Command Line Tools updates, not Homebrew.
+targeted `brew upgrade <formula...>`; mise apply is not an update command. Keep
+APT-owned tools with OS/distribution maintenance. The existing maintenance
+commands retain their broad Homebrew and APT inventory scopes. Native package
+maintenance is distinct from OS release upgrades/reboots. Apple system
+Git/Zsh/Vim are owned by macOS/Command Line Tools updates, not Homebrew.
 
 Oh My Zsh's automatic updater owns its checkout, bundled plugins, and themes,
 **not** the Homebrew-packaged shell enhancements. See [the shell guide](interactive-shell.md)
@@ -52,6 +55,29 @@ do not inherently upgrade language runtimes or every manager-owned application.
 
 Start learning ripgrep with `rg --help` and
 [ripgrep's guide](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md).
+
+## Existing package ownership
+
+The mise declarations do not continuously change package-manager ownership
+metadata, and autoremove does not consult `mise.toml`. On an existing machine,
+review current markings once before relying on autoremove. This is an optional,
+manual migration, not part of recovery:
+
+- **Homebrew:** inspect dependency-only formulae with
+  `brew list --formula --no-installed-on-request`. For only the installed core
+  formulae you have reviewed and want to retain, use Homebrew's native
+  `brew tab --installed-on-request --formula <formula...>` command. Check
+  `brew help tab` if the installed CLI does not provide that command; do not
+  edit Homebrew receipts or force-reinstall packages to change their markings.
+- **APT:** inspect `apt-mark showauto zsh git vim`; then run
+  `sudo apt-mark manual <reviewed-auto-packages...>` for only the installed
+  core packages that should be retained. Do not run `autoremove` as part of this
+  migration.
+
+These commands only change whether the package manager considers a package
+requested; they do not upgrade or remove packages. Repeat the review on each
+machine as appropriate. The separate [cleanup command](maintenance.md#separate-housekeeping-cleanup)
+remains an explicit, reviewed action.
 
 ## Curated optional inventory (manual, not provisioned)
 
