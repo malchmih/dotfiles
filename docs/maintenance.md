@@ -12,10 +12,52 @@ you can still run `./up`, `./cleanup`, `./update-tools`, and `./update-system` f
 the checkout. Keep `lib/maintenance.sh` alongside the entry points; `up` and
 `cleanup` resolve their deployment symlinks to find this shared implementation.
 
-Core recovery (`mise bootstrap --only packages,repos,dotfiles`), optional toolchain
-setup (`setup-toolchains`), applying configuration alone (`mise dot apply`), and
-maintenance are different actions. Nothing here runs on shell startup. The
-scripts work from Bash/Zsh without OMZ aliases/plugins.
+Core recovery (`mise bootstrap --only packages,repos,dotfiles`), repository checks
+(`mise run check`), optional toolchain setup (`setup-toolchains`), applying
+configuration alone (`mise dot apply`), and maintenance are different actions.
+Nothing here runs on shell startup. The scripts work from Bash/Zsh without OMZ
+aliases/plugins.
+
+## Repository checks
+
+From the reviewed repository checkout, explicitly run:
+
+```sh
+mise run check
+```
+
+This native mise task checks Bash syntax and runs ShellCheck over every maintained
+Bash entrypoint (`cleanup`, `scaffold-local`, `setup-toolchains`, `update-system`,
+`update-tools`, and `up`) plus `lib/maintenance.sh`. It runs `zsh -n` over the
+shared startup files (`zshenv`, `zprofile`, and `zshrc`), then runs the existing
+`python -m unittest discover -s tests -v` suite. It first requires `bash`, `zsh`,
+`shellcheck`, and `python` on PATH and exits nonzero with the missing command's
+name; Zsh-dependent test skips cannot make an incomplete check pass.
+
+The root `mise.toml` declares only the repository-local `latest` requests for
+ShellCheck through `aqua:koalaman/shellcheck` and Python through mise's built-in
+backend. Bash remains OS-provided; Zsh keeps its existing platform-specific core
+package owner and is not linted as Bash. These development tools and the check
+task are not Core packages or Recovery prerequisites. They are not invoked by
+startup, bootstrap, maintenance, CI, or a commit hook.
+
+When automatic installation is disabled or either mise tool is missing, install
+just these configured prerequisites explicitly from the checkout:
+
+```sh
+mise install aqua:koalaman/shellcheck python
+```
+
+Installing a missing `latest` request is not an upgrade of an already-installed
+version. To deliberately refresh only these repository tools, use:
+
+```sh
+mise upgrade --no-global aqua:koalaman/shellcheck python
+```
+
+These repo-only commands do not alter personal/global runtime selections or add
+runtime upgrades to Daily maintenance. Review the merged mise configuration and
+trust the checkout before running native tasks or install/upgrade commands.
 
 ## Daily maintenance: `up`
 
@@ -332,10 +374,10 @@ removed, migrated, or forcibly taken over by maintenance.
   here. This does not disable the retained component-native OMZ automatic updater
   or existing OS/application update policies.
 
-## Testing the wrappers
+## Existing maintenance test coverage
 
-Run `python3 -m unittest discover -s tests -v` from the checkout. Tests use an
-isolated PATH with fake managers and Linux identity fixtures; no real upgrade,
-cleanup, sudo authentication, or OS update is performed. Syntax/lint checks:
-`bash -n up cleanup lib/maintenance.sh` and
-`shellcheck up cleanup lib/maintenance.sh`.
+The `mise run check` task includes the existing Python unittest suite, which uses
+an isolated PATH with fake managers and Linux identity fixtures; no real upgrade,
+cleanup, sudo authentication, or OS update is performed. It also checks the
+maintained Bash entrypoints, shared maintenance library, and shared Zsh startup
+files described above.

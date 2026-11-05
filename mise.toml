@@ -16,6 +16,41 @@
 "apt:git" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 "apt:vim" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 
+# Optional repository-development tools; these are not core recovery packages.
+[tools]
+"aqua:koalaman/shellcheck" = "latest"
+python = "latest"
+
+# Invoke explicitly with `mise run check`; recovery and shell startup never run it.
+[tasks.check]
+description = "Check maintained shell scripts and Python tests"
+run = '''
+set -eu
+
+for executable in bash zsh shellcheck python; do
+    if ! command -v "$executable" >/dev/null 2>&1; then
+        printf 'mise check: required command not found: %s\n' "$executable" >&2
+        exit 1
+    fi
+done
+
+printf '%s\n' 'Checking Bash syntax...'
+for script in cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh; do
+    bash -n "$script"
+done
+
+printf '%s\n' 'Running ShellCheck...'
+shellcheck cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh
+
+printf '%s\n' 'Checking Zsh syntax...'
+for startup in zshenv zprofile zshrc; do
+    zsh -n "$startup"
+done
+
+printf '%s\n' 'Running Python unit tests...'
+python -m unittest discover -s tests -v
+'''
+
 # A process ZSH override keeps the checkout aligned with the shell preference.
 [vars]
 ZSH = { default = "~/.oh-my-zsh" }
@@ -23,7 +58,7 @@ ZSH = { default = "~/.oh-my-zsh" }
 [bootstrap.repos]
 "{{ vars.ZSH }}" = { url = "https://github.com/ohmyzsh/ohmyzsh.git", depth = 1 }
 
-# There are intentionally no core [tools], bootstrap tasks, or shell edits.
+# No development task is part of bootstrap, and no shell edits happen here.
 # Shared configuration sources are relative to this repository-root file.
 [dotfiles]
 "~/.vimrc" = { source = "vimrc", mode = "symlink" }

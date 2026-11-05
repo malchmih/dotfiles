@@ -3,12 +3,15 @@
 [Documentation index](../README.md#guides)
 
 Core recovery applies only the explicitly selected packages, repositories, and
-dotfiles phases. It excludes the tools and bootstrap-task phases. Neither that
+dotfiles phases. It excludes the repository-local ShellCheck/Python tools and
+`check` task, as well as the tools and bootstrap-task phases. Neither that
 recovery command, direct `mise dot apply`, nor shell startup invokes
 `./setup-toolchains` or installs the optional Node, Java, and CPython defaults.
-Shell activation does not install or upgrade tools merely because a directory is
-entered. No scheduler, blanket trust, profile/context framework, global Gradle,
-or Python CLI application is added by this workflow.
+The separate [`mise run check` workflow](maintenance.md#repository-checks) is
+also explicit and is not runtime setup. Shell activation does not install or
+upgrade tools merely because a directory is entered. No scheduler, blanket trust,
+profile/context framework, global Gradle, or Python CLI application is added by
+this workflow.
 
 ## Explicit opt-in
 

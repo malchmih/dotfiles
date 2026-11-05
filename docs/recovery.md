@@ -4,9 +4,10 @@
 
 Recovery restores a useful core environment, not identical versions or an entire
 workstation. The root `mise.toml` declares core packages, the Oh My Zsh checkout,
-and shared configuration links. The documented recovery command selects those
-phases explicitly; choosing an account shell and selecting optional runtimes are
-separate actions. Full IDE setup, desktop customization, and private
+shared configuration links, and separate optional repository tools/check task.
+The documented recovery command selects only the core phases explicitly; the
+repository check workflow, choosing an account shell, and selecting optional
+runtimes are separate actions. Full IDE setup, desktop customization, and private
 configuration backups remain outside core recovery.
 
 ## Bootstrap prerequisites
@@ -82,12 +83,14 @@ application is not a transaction, and failures can leave earlier bootstrap phase
 applied; inspect native status and rerun after resolving the reported issue.
 
 The packages, repositories, and dotfiles phases are selected explicitly. This
-excludes `[tools]`, the `bootstrap` task, automatic shell activation, and account
-shell changes, but `--only` is not repository isolation: mise still merges the
-normal system/global/project configuration and applicable hooks. Review the files
-listed by `mise config ls` and any applicable hooks before applying. The command
-does not pass `--update` or `--upgrade`: ordinary recovery does not broadly
-upgrade packages or fast-forward the Oh My Zsh checkout.
+excludes the repository's `[tools]` (ShellCheck and Python), its `check` task,
+the `bootstrap` task, automatic shell activation, and account-shell changes. Core
+recovery therefore neither installs the development tools nor runs their checks.
+However, `--only` is not repository isolation: mise still merges the normal
+system/global/project configuration and applicable hooks. Review the files listed
+by `mise config ls` and any applicable hooks before applying. The command does not
+pass `--update` or `--upgrade`: ordinary recovery does not broadly upgrade
+packages or fast-forward the Oh My Zsh checkout.
 
 The native repository declaration clones the unpinned
 [Oh My Zsh upstream repository](https://github.com/ohmyzsh/ohmyzsh#manual-installation)
@@ -135,10 +138,11 @@ is relative to that file, so sources continue to follow the checkout location:
 Before trusting a checkout, review its `mise.toml`. mise merges project
 configuration with your existing global and system configuration; trust does
 not isolate the repository. After trust, `mise config ls` lists the loaded
-configuration files. This checkout also declares core packages and the Oh My Zsh
-repository. The documented recovery command selects packages, repositories, and
-dotfiles only. Direct `mise dot apply` still runs only the native dotfiles phase;
-it does not provision packages or repositories, select runtimes, run maintenance,
+configuration files. This checkout also declares core packages, the Oh My Zsh
+repository, and the optional local check tools/task. The documented recovery
+command selects packages, repositories, and dotfiles only. Direct `mise dot apply`
+still runs only the native dotfiles phase; it does not provision packages,
+repositories, or development tools, run checks, select runtimes, run maintenance,
 or change the account shell. Review applicable hooks and history reload commands
 from merged configuration, since those remain native mise behavior. To apply
 shared links alone from the checkout:
@@ -161,8 +165,9 @@ directories.
 
 The direct `mise dot` commands apply native dotfiles entries from the loaded
 configuration (this repository declares the 11 links above). They do not
-provision packages, select runtimes, run maintenance, or change the account shell;
-they do not run package/repository/tool bootstrap or task phases. Review
+provision packages or tools, select runtimes, run maintenance or repository
+checks, or change the account shell; they do not run package/repository/tool
+bootstrap or task phases. Review
 applicable hooks and history reload commands from merged configuration as noted
 above. Preview first; native
 apply leaves already-matching links alone and

@@ -7,8 +7,11 @@ Zsh checkout for native mise bootstrap. The documented recovery command applies
 the packages, repositories, and dotfiles phases explicitly; shell startup and a
 direct `mise dot apply` do not provision packages. See [recovery](recovery.md)
 for prerequisites, preview/apply, repeat-run behavior, and diagnostics. No task
-runner, container engine, language toolchain, or GUI application is required.
-Shell enhancements remain optional at startup if they are not yet installed.
+runner, container engine, language toolchain, or GUI application is required for
+Core recovery. Repository-local ShellCheck/Python tools and the explicit
+[`mise run check` workflow](maintenance.md#repository-checks) are optional and
+remain outside the recovery phases. Shell enhancements remain optional at startup
+if they are not yet installed.
 
 Enhanced tools keep their own names: use `rg` and `http` explicitly. Nothing here
 aliases them over `grep`, `find`, `cat`, or other familiar commands. Convenience
@@ -88,7 +91,7 @@ libraries/codecs/certificates are intentionally omitted.
 
 | Group | Candidates and ownership convention |
 | --- | --- |
-| Other CLI/developer utilities | `shellcheck`, `mas` (Mac App Store helper, macOS only), and `just` if its alias is useful. Homebrew for standalone utilities. |
+| Other CLI/developer utilities | `mas` (Mac App Store helper, macOS only), and `just` if its alias is useful. Homebrew for standalone utilities. Repository ShellCheck is selected separately through mise for local checks. |
 | Media CLI | `ffmpeg`, `yt-dlp` through Homebrew; codec libraries are their dependencies, not recovery selections. |
 | Containers | Podman or Docker only when needed; inspect existing engine/VM ownership first. A Homebrew Docker CLI alone is **not** a working daemon. Desktop/VM/WSL engine setup is separate and manual. Do not install both merely because aliases exist. |
 | Language and Python tooling | Deno, pipx, Homebrew Python, and standalone Gradle are optional. Keep existing owners/data. The separate [opt-in toolchain workflow](toolchains.md) uses standalone mise for personal Node/Java/CPython defaults, while Homebrew-owned uv continues to manage project environments, dependencies, and CLI applications with its normal Python-download fallback. Prefer uv for project tooling without duplicating pipx-owned commands, and project Gradle Wrappers. |

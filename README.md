@@ -59,6 +59,15 @@ account shell is a [separate, deliberate action](docs/recovery.md#choose-the-acc
 See [recovery and configuration deployment](docs/recovery.md) for trust/review,
 preview, apply, status, repeat-run behavior, conflicts, and diagnostics.
 
+## Repository checks
+
+Run the explicitly invoked local check task from the checkout with
+`mise run check`. It validates the maintained Bash and Zsh startup files and
+the existing Python tests. The repository-local development tools are optional
+and are not part of Core recovery; see the
+[check workflow](docs/maintenance.md#repository-checks) for prerequisites and
+deliberate install/upgrade commands.
+
 ## Guides
 
 | I want to… | Guide |
