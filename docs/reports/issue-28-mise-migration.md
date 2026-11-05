@@ -6,9 +6,16 @@
 ## Before
 
 - Effective `auto_install`, `not_found_system_fallback`, and
-  `upgrade.auto_prune` were all `false`, each from the global mise config.
+  `upgrade.auto_prune` were all `false`, each from
+  `$HOME/.config/mise/config.toml`.
 - Global Node and Java requests were exact (`26.12.1` and
   `temurin-27.0.0+35`); there was no personal global Python request.
+- Before command resolution selected standalone mise at `$HOME/.local/bin/mise`,
+  Node 26.12.1 and Java Temurin 27.0.0+35 from mise, Homebrew `uv`/`uvx`, and
+  `python`/`python3` from `$HOME/.local/bin` (uv-managed CPython 3.13.5). The
+  additional `python3` resolutions were Homebrew CPython 3.15.2 and macOS
+  `/usr/bin/python3`; Homebrew ShellCheck and Zsh were available, as was
+  `/bin/zsh`.
 - The invoking process inherited `MISE_AUTO_INSTALL=false`, but no such export
   was present in shared or Local Zsh startup files, and `launchctl` had no value
   for it. Existing Python installations included Homebrew CPython 3.15.2,
@@ -47,6 +54,10 @@
   absent, leaving its normal interpreter-download fallback available. Homebrew,
   uv-managed, OS, and existing mise Python/runtime installations remained
   present; uv tool and pipx inventories were unchanged.
+- This rollout enabled no background runtime updater/service or Daily
+  runtime-upgrade step. It did not run Recovery/bootstrap or change the
+  documented Recovery boundary; only the explicit setup and local check
+  workflows were invoked.
 - Before/after checks confirmed that unrelated global mise config entries,
   Local Zsh files, the repository mise config, and the Homebrew formula/version
   inventory were unchanged. No mise lockfile was added.
@@ -56,8 +67,10 @@
 - `mise run check` **passed**: maintained Bash syntax, ShellCheck, Zsh syntax,
   and all 37 Python unit tests.
 - The setup test `test_setup_resets_legacy_settings_and_selects_floating_global_defaults`
-  passed, including its second execution against disposable fake manager state.
-  The live setup was run once; the subsequent fresh-shell and preservation
-  inspections were read-only.
+  passed. Its disposable two-run fixture confirms preservation of unrelated
+  settings/tools, Local config, project pin, existing environment and uv Python;
+  the second run leaves the migrated global config byte-for-byte unchanged. The
+  live setup was run once; subsequent fresh-shell and preservation inspections
+  were read-only.
 - Live verification covered this Apple Silicon macOS machine only. Linux
   behavior was not live-tested.
