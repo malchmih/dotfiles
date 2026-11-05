@@ -1,0 +1,23 @@
+# Shared configuration sources are relative to this repository-root file.
+[dotfiles]
+"~/.vimrc" = { source = "vimrc", mode = "symlink" }
+"~/.ideavimrc" = { source = "ideavimrc", mode = "symlink" }
+"~/.zshrc" = { source = "zshrc", mode = "symlink" }
+"~/.zshenv" = { source = "zshenv", mode = "symlink" }
+"~/.zprofile" = { source = "zprofile", mode = "symlink" }
+"~/.local/bin/update-tools" = { source = "update-tools", mode = "symlink" }
+"~/.local/bin/update-system" = { source = "update-system", mode = "symlink" }
+"~/.local/bin/up" = { source = "up", mode = "symlink" }
+"~/.local/bin/cleanup" = { source = "cleanup", mode = "symlink" }
+
+# mise resolves xdg_config_home from XDG_CONFIG_HOME, falling back to ~/.config
+# when it is unset or empty.
+[dotfiles."opencode/AGENTS.md"]
+source = "opencode/AGENTS.md"
+mode = "symlink"
+variants = [{ default = true, target = "{{ xdg_config_home }}/opencode/AGENTS.md" }]
+
+[dotfiles."opencode/cli.json"]
+source = "opencode/cli.json"
+mode = "symlink"
+variants = [{ default = true, target = "{{ xdg_config_home }}/opencode/cli.json" }]

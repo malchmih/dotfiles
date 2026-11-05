@@ -85,5 +85,5 @@ MISE_AUTO_INSTALL=false "$mise" exec -- node --version
 MISE_AUTO_INSTALL=false "$mise" exec -- java -version
 MISE_AUTO_INSTALL=false "$mise" exec -- javac -version
 "$brew_prefix/bin/uv" --version
-printf '%s\n' 'Personal defaults selected. Apply shared configuration with ./install from the checkout, then open a fresh terminal.' \
+printf '%s\n' 'Personal defaults selected. Apply reviewed shared configuration with mise dot apply from the checkout, then open a fresh terminal.' \
     'Existing pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'

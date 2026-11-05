@@ -60,9 +60,10 @@ diagnosis, propose it as medium (high for an elevated operation), with explicit
 network and metadata-write effects. This exception is evidence refresh, not
 authorization to upgrade managers or packages. In particular, `brew update`
 updates Homebrew itself as well as definitions: recommend it as follow-up rather
-than execute it during checkup. Avoid using installer wrappers as previews:
-`./install --dry-run` can bootstrap/synchronize submodules before Dotbot runs.
-`setup-toolchains` is a setup action, not a check.
+than execute it during checkup. Avoid using setup actions as previews:
+`mise dot apply --dry-run` previews declared configuration links, but review the
+repository config before trusting it; normal global/system mise configuration is
+not isolated. `setup-toolchains` is a setup action, not a check.
 
 Research public support/deprecation/replacement facts using official vendor,
 project, or distribution sources in an approved medium batch. Sanitize queries;

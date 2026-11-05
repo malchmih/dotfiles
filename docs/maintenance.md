@@ -2,19 +2,20 @@
 
 [Documentation index](../README.md#guides)
 
-After applying configuration with `./install` from the dotfiles checkout, run
+After applying configuration with `mise dot apply` from the dotfiles checkout, run
 `up`, `cleanup`, `update-tools`, and `update-system` **from any directory**, as your
-ordinary account, after reading their scopes. Dotbot links these commands into
+ordinary account, after reading their scopes. mise links these commands into
 `~/.local/bin`, already on PATH in the configured Zsh sessions. Other shells need
 that directory on PATH too; no system-wide installation is performed. Keep the
 checkout in place because the links point into it. Before applying the links,
 you can still run `./up`, `./cleanup`, `./update-tools`, and `./update-system` from
-the checkout. Keep `lib/maintenance.sh` alongside the new entry points; they
-resolve installation symlinks to find this shared implementation.
+the checkout. Keep `lib/maintenance.sh` alongside the entry points; `up` and
+`cleanup` resolve their deployment symlinks to find this shared implementation.
 
 Installation (`setup-core`, `setup-toolchains`), applying
-configuration (`install`), and maintenance are different actions. Nothing here
-runs on shell startup. The scripts work from Bash/Zsh without OMZ aliases/plugins.
+configuration (`mise dot apply`), and maintenance are different actions. Nothing
+here runs on shell startup. The scripts work from Bash/Zsh without OMZ
+aliases/plugins.
 
 ## Daily maintenance: `up`
 
@@ -290,9 +291,9 @@ removed, migrated, or forcibly taken over by maintenance.
 ## Recovery, troubleshooting, and future scheduling
 
 - Update this checkout deliberately with Git after reviewing changes; new shell
-  sessions see symlinked configuration immediately. No maintenance command pulls the
-  dotfiles repo, changes Dotbot's pinned submodule, applies links, or changes the
-  login shell. See [recovery](recovery.md) and [Dotbot updates](recovery.md#update-dotbot).
+  sessions see symlinked configuration immediately. No maintenance command pulls
+  the dotfiles repo, applies links, or changes the login shell. See
+  [recovery](recovery.md) for native mise deployment and status commands.
 - `./setup-core --check` diagnoses the selected core owners/PATH after recovery;
   it is not an updater. On errors inspect manager-native output, `type -a`,
   `brew doctor`, available disk space, repository/index access, configured pins,

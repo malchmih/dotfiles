@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Explicitly create examples; shell startup and ./install never call this.
+# Explicitly create examples; shell startup and mise dot apply never call this.
 set -euo pipefail
 umask 077
 

@@ -2,19 +2,23 @@
 
 [Documentation index](../README.md#guides)
 
-OpenCode is an optional client, not a `setup-core` package. Ordinary `./install`
-applies two global preference files whether or not the client is installed:
+OpenCode is an optional client, not a `setup-core` package. The native
+`mise dot apply` command deploys two global preference files whether or not the
+client is installed:
 
 - `opencode/AGENTS.md`: the global interview preference for interactive questions.
 - `opencode/cli.json`: terminal appearance, sessions, notifications, and diff preferences.
 
-Destinations use `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/`. Export
-`XDG_CONFIG_HOME` before running `./install` and launch OpenCode with the same
-value. The installer creates missing parent directories, links individual files,
-and leaves the rest of the OpenCode directory alone. Existing regular files
-remain conflicts; inspect and move them aside deliberately before applying links.
+Destinations use `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/`. mise resolves
+`XDG_CONFIG_HOME` when nonempty and otherwise uses `$HOME/.config`, including
+when the variable is empty. Export a custom value before running `mise dot apply`
+and launch OpenCode with the same value. Native deployment creates missing parent
+directories, links only these declared files, and leaves the rest of the OpenCode
+directory alone. Existing regular files or directories remain conflicts; inspect
+and move them aside deliberately before applying links. Do not use `--force`.
 
-These are live links into the checkout. OpenCode settings changes may write to
+Use `mise dot status --verbose` to inspect these declared links. They are live
+links into the checkout. OpenCode settings changes may write to
 the shared source: review `git diff` before committing, especially if a future
 client version adds settings. CLI preferences reload while the TUI is running;
 they are separate from server/project configuration.

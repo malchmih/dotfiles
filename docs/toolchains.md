@@ -3,7 +3,7 @@
 [Documentation index](../README.md#guides)
 
 Core recovery and the local shell layer work independently of runtimes. Neither
-`./setup-core`, `./install`, nor shell startup invokes `./setup-toolchains` or
+`./setup-core`, `mise dot apply`, nor shell startup invokes `./setup-toolchains` or
 installs runtimes. No scheduler, blanket trust, profile/context framework, global
 Gradle, Python runtime, or Python application is added by this workflow.
 
@@ -18,7 +18,8 @@ no sudo of its own.
 
 ## Standalone mise prerequisite
 
-Install mise explicitly with the [official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run):
+Install mise explicitly with the [official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run)
+before applying shared configuration or opting into runtime setup:
 
 ```sh
 curl -fsSL https://mise.run | sh
@@ -36,8 +37,8 @@ installer endpoint above does not append shell activation. Do not use
 mise, and the shell-specific installer can append another activation block.
 
 Shared `.zshenv` prepends `$HOME/.local/bin` on new Zsh sessions. After applying
-the shared links, open a fresh shell; in the current shell, add that directory
-to `PATH` if needed. Confirm `type -a mise` shows the intended standalone
+the shared links with mise, open a fresh shell; in the current shell, add that
+directory to `PATH` if needed. Confirm `type -a mise` shows the intended standalone
 executable first and check it with `mise --version`. Shell startup never
 installs or updates mise.
 
@@ -81,7 +82,10 @@ copy. Do not run setup from an unreviewed checkout.
 ```sh
 brew update                  # explicit package-definition refresh, not upgrades
 ./setup-toolchains           # deliberately install/select optional tools
-./install                    # apply shared shell links if not already applied
+# From the reviewed dotfiles checkout; review mise.toml before trusting it.
+mise trust
+mise dot apply --dry-run
+mise dot apply               # apply shared shell links if not already applied
 # Open a new terminal (do not repeatedly source .zshrc).
 mise ls --current
 node --version

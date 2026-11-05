@@ -36,7 +36,7 @@ existing paths (including symlinks), and reports where to edit. New directories
 are owner-only and new files are owner-readable/writable; existing permissions
 and contents are unchanged. It installs no packages, collects no credentials,
 changes no login shell, and activates no profiles. Neither scaffolding nor local
-files are needed for `./install`.
+files are needed for native shared-configuration deployment with mise.
 
 Local configuration is **not versioned or backed up here**. Arrange its secure
 backup separately if needed. Employer-specific settings and credentials must
@@ -54,7 +54,7 @@ shared declarations; verify them without printing their values.
 | Interactive login `zsh -lic` | all three | both files |
 
 This follows standard Zsh startup (not `zsh -f`, which skips user startup files).
-Dotbot links these files into `$HOME`; if you deliberately use `ZDOTDIR`, arrange
+mise links these files into `$HOME`; if you deliberately use `ZDOTDIR`, arrange
 the corresponding startup links there yourself. Bash and other shells do not
 source these files. These files do **not** configure every GUI application's
 environment automatically; GUI launchers may not start Zsh at all.
@@ -96,7 +96,7 @@ instructions as described in [recovery prerequisites](recovery.md#bootstrap-prer
 ### Refresh a session
 
 The installed files are live symlinks into this checkout: edits apply to **new**
-sessions immediately, without rerunning Dotbot. Open a new shell or use
+sessions immediately, without rerunning `mise dot apply`. Open a new shell or use
 `exec zsh -l` to replace the current interactive shell (after saving work).
 Existing processes keep their old environment; repeatedly sourcing `.zshrc`
 can repeat third-party initialization and is not a full startup refresh.

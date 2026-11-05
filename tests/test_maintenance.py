@@ -290,22 +290,6 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Usage: cleanup", result.stdout)
 
-    @unittest.skipUnless((ROOT / "dotbot/bin/dotbot").exists(), "Dotbot submodule is not initialized")
-    def test_dotbot_links_all_maintenance_commands_in_sandbox(self):
-        env = dict(self.env, XDG_CONFIG_HOME=str(self.home / "config"))
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "dotbot/bin/dotbot"),
-             "-d", str(ROOT), "-c", str(ROOT / "install.conf.yaml")],
-            capture_output=True, text=True, env=env, cwd=self.home,
-        )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        for name in ("up", "cleanup", "update-tools", "update-system"):
-            link = self.home / ".local/bin" / name
-            self.assertTrue(link.is_symlink())
-            self.assertEqual(link.resolve(), ROOT / name)
-            self.assertTrue(os.access(link, os.X_OK))
-        self.assertFalse(self.log.exists(), "Installing links must not run maintenance")
-
     @unittest.skipUnless(shutil.which("zsh"), "Zsh is not installed")
     def test_shell_removes_plugin_collisions_but_preserves_local_overrides(self):
         omz = self.home / "omz"

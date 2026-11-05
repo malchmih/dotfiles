@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Explicit package installation, separate from Dotbot and shell startup.
+# Explicit package installation, separate from mise configuration and shell startup.
 set -euo pipefail
 
 die() {
@@ -151,4 +151,4 @@ for tool in zsh git gh rg http vim fzf; do
 done
 [[ $mode != check || $missing -eq 0 ]] || die 'Core setup is incomplete. Run ./setup-core after resolving the prerequisites above.'
 [[ $failed -eq 0 ]] || die 'Core command checks failed. Fix the reported PATH or installation problem and rerun --check.'
-printf '%s\n' 'Core tools checked. Configuration: ./install. Login shell: unchanged.'
+printf '%s\n' 'Core tools checked. Configuration: mise dot apply from the reviewed checkout. Login shell: unchanged.'

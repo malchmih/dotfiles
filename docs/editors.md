@@ -6,7 +6,7 @@
 
 Terminal Vim is the lightweight fallback editor in the core environment, for
 ordinary text and quick edits rather than a full development-editor setup.
-[Core setup](recovery.md) installs Vim; `./install` links `vimrc` to `~/.vimrc`.
+[Core setup](recovery.md) installs Vim; `mise dot apply` links `vimrc` to `~/.vimrc`.
 No Vundle, downloaded plugins, or external theme is required.
 
 The small built-in baseline enables filetype detection and indentation, syntax
@@ -33,7 +33,7 @@ backup system; see `:help recovery`.
 
 ## Optional IdeaVim
 
-IdeaVim is an **optional, independent** IDE preference. Dotbot links `ideavimrc`
+IdeaVim is an **optional, independent** IDE preference. mise links `ideavimrc`
 to `~/.ideavimrc`, whose only customization is the same `fd` mapping; it does not
 source terminal Vim settings or add Cursive actions, navigation, clipboard, or
 join overrides. The link is harmless without an IDE.
