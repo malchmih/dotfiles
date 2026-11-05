@@ -11,11 +11,11 @@
 - Global Node and Java requests were exact (`26.12.1` and
   `temurin-27.0.0+35`); there was no personal global Python request.
 - Before command resolution selected standalone mise at `$HOME/.local/bin/mise`,
-  Node 26.12.1 and Java Temurin 27.0.0+35 from mise, Homebrew `uv`/`uvx`, and
-  `python`/`python3` from `$HOME/.local/bin` (uv-managed CPython 3.13.5). The
-  additional `python3` resolutions were Homebrew CPython 3.15.2 and macOS
-  `/usr/bin/python3`; Homebrew ShellCheck and Zsh were available, as was
-  `/bin/zsh`.
+  Node 26.12.1 and Java Temurin 27.0.0+35 from mise (with `/usr/bin/java` also
+  available), Homebrew `uv`/`uvx`, and `python`/`python3` from `$HOME/.local/bin`
+  (uv-managed CPython 3.13.5). Additional `python3` resolutions were Homebrew
+  CPython 3.15.2 and macOS `/usr/bin/python3`. Homebrew ShellCheck 0.11.0 and
+  Zsh 5.9.2 were available, as were `/bin/bash` and `/bin/zsh`.
 - The invoking process inherited `MISE_AUTO_INSTALL=false`, but no such export
   was present in shared or Local Zsh startup files, and `launchctl` had no value
   for it. Existing Python installations included Homebrew CPython 3.15.2,
