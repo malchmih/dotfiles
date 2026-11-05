@@ -69,7 +69,7 @@ preview, apply, status, repeat-run behavior, conflicts, and diagnostics.
 | Add private settings or understand startup and PATH precedence | [Local configuration](docs/local-configuration.md) |
 | Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
 | Restore global OpenCode instructions and terminal preferences | [OpenCode preferences](docs/opencode.md) |
-| Opt into mise/uv, Node/Java, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
+| Opt into mise/uv, Node/Java/Python, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
 | Run daily updates, reviewed cleanup, or scoped maintenance | [Maintenance](docs/maintenance.md) |
 
 The [glossary](GLOSSARY.md) defines the repository's scope and terminology.

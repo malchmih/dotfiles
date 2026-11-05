@@ -5,9 +5,10 @@
 Core recovery applies only the explicitly selected packages, repositories, and
 dotfiles phases. It excludes the tools and bootstrap-task phases. Neither that
 recovery command, direct `mise dot apply`, nor shell startup invokes
-`./setup-toolchains` or installs Node/Java runtimes. No scheduler, blanket trust,
-profile/context framework, global Gradle, Python runtime, or Python application is
-added by this workflow.
+`./setup-toolchains` or installs the optional Node, Java, and CPython defaults.
+Shell activation does not install or upgrade tools merely because a directory is
+entered. No scheduler, blanket trust, profile/context framework, global Gradle,
+or Python CLI application is added by this workflow.
 
 ## Explicit opt-in
 
@@ -70,16 +71,17 @@ formula:
    with `mise ls --current` and confirm your prior configuration is still present.
 
 The executable transition does not require reinitializing mise or reinstalling
-Node/Java. Finish any blocked Homebrew dependency migration separately and
-deliberately.
+Node, Java, or Python. Finish any blocked Homebrew dependency migration separately
+and deliberately.
 
-Before setup, inspect `type -a mise uv uvx node java` and existing mise global/home
-configuration, if any (normally `${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml`
-and any home `mise.toml`/`.tool-versions`). Setup uses your personal configuration,
-not an isolated manager home; existing hooks, backend overrides, and settings
-remain yours to review. Setup requires `$HOME/.local/bin/mise` to be executable
-and selected first on `PATH`; it fails rather than falling back to a Homebrew
-copy. Do not run setup from an unreviewed checkout.
+Before setup, inspect `type -a mise uv uvx node java python python3` and existing
+mise global/home configuration, if any (normally
+`${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml` and any home
+`mise.toml`/`.tool-versions`). Setup uses your personal configuration, not an
+isolated manager home; existing hooks, backend overrides, and settings remain
+yours to review. Setup requires `$HOME/.local/bin/mise` to be executable and
+selected first on `PATH`; it fails rather than falling back to a Homebrew copy.
+Do not run setup from an unreviewed checkout.
 
 ```sh
 brew update                  # explicit package-definition refresh, not upgrades
@@ -93,6 +95,7 @@ mise ls --current
 node --version
 java -version
 javac -version
+python --version
 uv --version
 ```
 
@@ -117,20 +120,34 @@ should own each command.
 | --- | --- |
 | mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); daily `up` includes `mise self-update` in its shared approval (also updates installed plugins by default) |
 | uv / uvx | Supported [Homebrew formula](https://docs.astral.sh/uv/getting-started/installation/#homebrew); `brew upgrade uv`, not `uv self update` |
-| Node / npm | mise's built-in Node backend; upstream Node distributions |
-| Java / javac | mise's built-in Java backend; Eclipse Temurin GA JDK distributions (not JRE-only) |
-| Future Python runtimes/projects/CLI apps | uv, deliberately invoked; not provisioned by setup |
+| Node / npm | mise's built-in Node backend; newest stable upstream Node release |
+| Java / javac | mise's built-in Java backend; `java@latest` follows mise's default vendor (Temurin as of this writing) and default GA release type |
+| Personal Python / `python`, `python3` | mise's built-in Python backend (CPython); selected as a floating personal default |
+| Project environments, dependencies, and CLI apps | Homebrew-owned uv; compatible Python on PATH (including mise's selection) may be used, and uv's normal managed-Python fallback remains enabled |
 | Existing pipx apps | pipx retains ownership, environments, and updates |
 
 ## Personal defaults versus project requirements
 
-Setup runs `mise use --global --pin node@latest java@temurin` from `$HOME`, not
-the caller's project directory. It refreshes remote version lists and excludes
+Setup runs `mise use --global --fuzzy node@latest java@latest python@latest`
+from `$HOME`, not the caller's project directory. `--fuzzy` keeps each request
+as `latest` even when the `pin` setting or `MISE_PIN=1` would otherwise write an
+exact resolved version. Setup refreshes remote version lists and excludes
 prereleases for this selection. `latest` means newest stable Node, **not** LTS;
-`temurin` means newest stable/GA Temurin JDK of any major, **not** an LTS-only
-policy. Downloads depend on upstream availability for the host architecture.
-The resolved exact versions are written to your personal mise config. Existing
-unrelated entries are retained. No project declarations or lockfiles are edited.
+Java follows mise's default shorthand vendor (Temurin as of this writing) and
+default GA release type, **not** an LTS-only policy. Python is the built-in
+CPython backend's newest stable release. Downloads depend on upstream
+availability for the host architecture. The floating requests are written to
+your personal mise config; existing unrelated settings and tool entries are
+retained. No project declarations or lockfiles are edited.
+
+Before selecting runtimes, setup removes only the three global settings that an
+older version of this helper wrote as `false`: `auto_install`,
+`not_found_system_fallback`, and `upgrade.auto_prune`. Unsetting them restores
+mise's defaults (currently `true` for all three) instead of merely stopping new
+false values from being written. Every other global setting is left alone.
+Setup can be rerun to deliberately refresh the personal selections. It does not
+uninstall existing mise, uv-managed, Homebrew-owned, or OS Python installations,
+or rebuild existing environments.
 
 **Rerunning setup intentionally reselects newest-stable personal defaults.** Old
 runtime installations are not removed. A newest JDK may be too new to run an old
@@ -165,24 +182,47 @@ A broad request like `node@24`, `node@latest`, or `java@temurin` is a resolution
 rule, not a background upgrade job. Pins/lockfiles improve reproducibility;
 updating them is a separate project decision.
 
-## Shell activation and absent-manager fallback
+## Shell activation and missing-tool behavior
 
 Shared interactive Zsh activates mise only when its executable is on PATH,
-after Oh My Zsh and before local `interactive.zsh`. It exports
-`MISE_AUTO_INSTALL=false` so prompts, directory changes, and command-not-found
-handling cannot provision missing runtimes. Setup also records `auto_install =
-false` globally for noninteractive use, disables shim fallback to unrelated
-system runtimes, and disables automatic pruning on later mise upgrades.
-Use `mise install` explicitly for missing project versions. Do not add lazy
-first-use declarations if you want installation to stay explicit.
+after Oh My Zsh and before local `interactive.zsh`; it does not override mise's
+normal auto-install policy. The legacy shared `MISE_AUTO_INSTALL=false` export is
+removed. With mise's default `auto_install = true`, a missing configured tool can
+be installed by `mise exec`, `mise run`/a task that needs it, or enabled
+shim/command-not-found handling. This is separate from selecting or upgrading an
+already-installed runtime. Entering a directory updates the selected environment;
+it does not by itself install or upgrade tools. This repository adds no install
+hooks or lazy tool declarations.
+
+Mise's default `not_found_system_fallback = true` lets a shim run a same-named
+system executable if it cannot resolve the configured tool. Its default
+`upgrade.auto_prune = true` schedules replaced mise-managed versions for removal
+after the normal grace period, while versions still in use are retained. Auto-
+install is not an update policy: no background runtime updates or update service
+is enabled. If setup ran in a shell that inherited the old export, start a fresh
+shell after applying the shared configuration.
+
+To inspect effective defaults from outside this checkout, use:
+
+```sh
+cd "$HOME"
+mise settings get auto_install
+mise settings get not_found_system_fallback
+mise settings get upgrade.auto_prune
+```
+
+Use `mise install` explicitly when you want to install a project's declared
+versions ahead of use. For non-installing verification of an already completed
+setup, command-scoped `MISE_AUTO_INSTALL=false mise exec -- ...` is appropriate;
+it does not reintroduce a persistent shell override.
 
 With no mise, shared startup skips activation quietly; system/user commands and
 both optional local files still work.
 
 Local interactive overrides run last and can override mise's PATH or `JAVA_HOME`.
 Start a **fresh terminal** after changing shell configuration. Inspect
-`type -a node java`, `mise which node`,
-`mise which java`, and `print -r -- "$JAVA_HOME"`; compare inside/outside a
+`type -a node java python python3`, `mise which node`, `mise which java`,
+`mise which python`, and `print -r -- "$JAVA_HOME"`; compare inside/outside a
 reviewed project. Existing shells keep their previous environment until replaced.
 
 ## Scripts, IDEs, and Gradle
@@ -217,36 +257,49 @@ child processes, **not** `JAVA_HOME` in the parent IDE. Configure the IDE JDK
 directly or launch through `mise exec`. Terminal activation does not configure
 all GUI launchers, services, schedulers, or other shells globally.
 
-## Future Python tooling and updates
+## Python, uv, and updates
 
-Prefer uv for new work: `uv python install 3.13` for an explicitly chosen Python,
-`uv init`/`uv add`/`uv run` for projects, and `uv tool install <new-app>` or
-`uvx <new-app>` for CLI tools. These are examples of deliberate separate actions,
-not setup steps; uv run/uvx can download runtimes/dependencies and execute code.
-Review project/package sources first. Do not use mise to install Python/uv or
-duplicate a Python CLI already owned elsewhere.
+The optional setup selects mise's floating personal CPython default; it does not
+replace OS/bootstrap Python, existing Homebrew Python, uv-managed Python, or any
+project environment. Homebrew continues to own the `uv` executable. Use uv for
+project environments and dependencies (`uv init`, `uv add`, `uv run`), and for
+CLI apps (`uv tool install <new-app>` or `uvx <new-app>`). When a mise-selected
+Python is on PATH and satisfies a project's requirements, uv can discover and use
+it; pass `--python "$(command -v python)"` when a project should explicitly use
+that interpreter. Otherwise uv applies its normal interpreter preference and
+project requirements. Its automatic managed-Python download fallback remains
+available for a project-specific interpreter; do not add a global download
+prohibition or set `python-downloads = "manual"` as part of this workflow. uv
+commands may download runtimes/dependencies and execute code, so review project
+and package sources first.
 
-Before installing a CLI, inspect `pipx list`, `uv tool list`, and `type -a
-<command>`. Keep existing pipx apps with pipx (including their existing executable
-links in `~/.local/bin`); no `uv tool install --force`, alias takeover, or automatic
-reinstallation. An eventual migration needs a separately intentional uninstall
-and reinstall, with its settings/data considered. Core bootstrap Python remains
-OS/Homebrew-owned; uv does not replace the distribution's Python.
+Keep existing Python CLI ownership: before installing a CLI, inspect `pipx list`,
+`uv tool list`, and `type -a <command>`. Keep existing pipx apps with pipx
+(including their existing executable links in `~/.local/bin`); no `uv tool
+install --force`, alias takeover, or automatic reinstallation. An eventual
+migration needs a separately intentional uninstall and reinstall, with its
+settings/data considered. Core/bootstrap Python remains OS/Homebrew-owned; uv
+does not replace the distribution's Python.
 
 - Refresh Homebrew formula definitions with `brew update`. Upgrade selected
   **managers** deliberately: daily `up` offers a separate approval for native
   `mise self-update` on standalone mise, and use `brew upgrade uv` for
   Homebrew-owned uv. The default mise self-update also updates installed plugins;
   its exact changes may be unknown until execution. Neither action selects newer
-  Node/JDK versions, upgrades uv-managed Python, project dependencies, or pipx/uv
-  applications.
+  Node/Java/Python runtimes, upgrades uv-managed Python, project dependencies, or
+  pipx/uv applications.
 - Reselect newest-stable **personal runtimes**: rerun `./setup-toolchains`.
-  This changes personal pins, not project requirements, and retains old runtimes.
+  This refreshes floating global requests, not project requirements, and retains
+  old installations and environments. To upgrade the current global Node, Java,
+  and Python selections without changing project requests, use the separate
+  explicit action `mise upgrade --global node java python` after reviewing the
+  global/system configuration it will apply to.
 - For a reviewed project, `mise install` installs its declared versions;
-  `mise outdated` inspects newer matches. `mise upgrade node java` deliberately
-  upgrades matching runtime requests in the current scope, not necessarily to
-  a new major. Review `mise upgrade --help` before using `--bump` (declaration
-  changes). Automatic pruning is disabled by setup; no cleanup is required.
+  `mise outdated` inspects newer matches. `mise upgrade node java python`
+  deliberately upgrades matching runtime requests in the current scope, not
+  necessarily to a new major. Review `mise upgrade --help` before using `--bump`
+  (declaration changes). Default automatic pruning applies to replaced
+  mise-managed versions after their grace period.
 - uv Python updates, `uv tool upgrade <app>`, project `uv lock --upgrade`/sync,
   and pipx-owned app upgrades are distinct deliberate operations, not manager
   updates. No scheduled/background upgrades are configured by this workflow.

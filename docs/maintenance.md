@@ -90,9 +90,9 @@ not just this repository's core selections:
   dotfiles pull, shell-framework update, Snap/Flatpak/vendor updater, or Windows-host
   maintenance. Oh My Zsh retains its existing automatic update policy. Homebrew
   may still update formula-owned runtimes, as explained under user tools below.
-  Mise plugin updates do not select newer Node/Java runtimes; `up` does not run
-  `mise install`, `mise use`, `mise upgrade`, bootstrap/repository phases, or
-  project dependency commands. No machine reboot is requested; native
+  mise plugin updates do not select newer Node/Java/Python runtimes; `up` does
+  not run `mise install`, `mise use`, `mise upgrade`, bootstrap/repository phases,
+  or project dependency commands. No machine reboot is requested; native
   package/installer scripts retain their own service and system-policy behavior.
 
 Plugin aliases/functions named `up` or `cleanup` are removed after OMZ loads so
@@ -202,11 +202,13 @@ interactive shell (which could trigger local code and the automatic updater).
 
 Upgrading mise/uv binaries is **not** selecting new runtime versions:
 
-- Rerun `./setup-toolchains` only to deliberately reselect newest-stable personal
-  Node/Temurin JDK pins. It runs from home, preserves older installations and
-  unrelated global entries, and does not rewrite project declarations. Review
-  home config/hooks first. It requires standalone mise and can install missing
-  Homebrew uv, unlike maintenance.
+- Rerun `./setup-toolchains` only to deliberately reselect floating latest
+  personal Node, Java, and CPython requests. It runs from home, preserves older
+  installations and unrelated global entries, and does not rewrite project
+  declarations. Review home config/hooks first. It requires standalone mise and
+  can install missing Homebrew uv, unlike maintenance. An explicit
+  `mise upgrade --global node java python` is a separate runtime-upgrade action;
+  neither action is part of Daily maintenance.
 - Project pins/lockfiles and dependencies remain project decisions. For a
   reviewed project, use `mise install` for declared versions; inspect `mise
   outdated` and the scope of `mise upgrade` before deliberately changing them.

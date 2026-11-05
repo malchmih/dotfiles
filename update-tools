@@ -69,7 +69,7 @@ if [[ $action == upgrade ]]; then
         printf '%s\n' 'SKIP: optional pipx not on PATH.'
     fi
     printf '%s\n' 'OMZ retains its native automatic updater; manual: omz update in interactive Zsh.' \
-        'No mise/uv runtime selection requested: use ./setup-toolchains deliberately for personal Node/JDK defaults.'
+        'No mise/uv runtime selection requested: use ./setup-toolchains deliberately for personal Node/Java/Python defaults.'
 fi
 [[ $failed -eq 0 ]] || die 'One or more managers failed. Earlier changes remain; inspect errors before retrying.'
 printf '%s\n' 'Requested user-tool maintenance finished for available managers; OS/native maintenance was not invoked.'

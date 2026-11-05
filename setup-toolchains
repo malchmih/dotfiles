@@ -12,8 +12,8 @@ case "${1:-}" in
     '') ;;
     --help|-h)
         printf '%s\n' 'Usage: ./setup-toolchains' \
-            'Require standalone mise, install missing Homebrew uv, and select newest-stable personal Node/Temurin JDK defaults.' \
-            'Rerunning deliberately reselects current stable defaults; projects are not edited.' \
+            'Require standalone mise, install missing Homebrew uv, and select latest stable personal Node, Java, and CPython.' \
+            'Rerunning deliberately refreshes these floating global requests; projects are not edited.' \
             'See docs/toolchains.md for ownership, trust, and verification.'
         exit 0
         ;;
@@ -71,19 +71,21 @@ for tool in uv uvx; do
         die "Selected $tool is not on PATH. Fix Homebrew linking/PATH, then rerun."
 done
 
-# Do not load or rewrite the caller's project configuration. Global/personal
-# configuration remains user-owned; review existing mise config before setup.
+# Work outside the caller's project. Remove only the legacy overrides so mise's
+# normal global defaults apply, preserving unrelated settings and tool entries.
 cd "$HOME"
-"$mise" settings set auto_install false
-"$mise" settings set not_found_system_fallback false
-"$mise" settings set upgrade.auto_prune false
+"$mise" settings unset auto_install
+"$mise" settings unset not_found_system_fallback
+"$mise" settings unset upgrade.auto_prune
 # Resolve fresh stable releases, even if an older matching version is installed.
-# Pin the result so later prompts/install requests do not move the defaults.
+# --fuzzy keeps the requests floating even when the user's pin setting is enabled.
 MISE_PRERELEASES=false MISE_FETCH_REMOTE_VERSIONS_CACHE=0s \
-    "$mise" use --global --pin node@latest java@temurin
+    "$mise" use --global --fuzzy node@latest java@latest python@latest
+# Verify the selected executables without letting these checks install anything.
 MISE_AUTO_INSTALL=false "$mise" exec -- node --version
 MISE_AUTO_INSTALL=false "$mise" exec -- java -version
 MISE_AUTO_INSTALL=false "$mise" exec -- javac -version
+MISE_AUTO_INSTALL=false "$mise" exec -- python --version
 "$brew_prefix/bin/uv" --version
-printf '%s\n' 'Personal defaults selected. Apply reviewed shared configuration with mise dot apply from the checkout, then open a fresh terminal.' \
-    'Existing pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'
+printf '%s\n' 'Personal floating latest requests selected. Apply reviewed shared configuration with mise dot apply from the checkout, then open a fresh terminal.' \
+    'Existing Python installations, environments, and pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'

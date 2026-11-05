@@ -43,10 +43,9 @@ fi
 unalias up cleanup 2>/dev/null
 unfunction up cleanup 2>/dev/null
 
-# mise selects the active Node/Java runtimes.
-# No missing-runtime installation from activation, prompts, or command lookup.
+# mise selects the active personal/project runtimes. Activation adds no install
+# hook: ordinary directory entry alone does not install or upgrade tools.
 if (( $+commands[mise] )); then
-  export MISE_AUTO_INSTALL=false
   eval "$(mise activate zsh)"
 fi
 
