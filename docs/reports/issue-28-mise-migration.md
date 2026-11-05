@@ -29,12 +29,20 @@
   selected. Existing runtime versions were retained.
 - A fresh interactive login Zsh outside the checkout reported
   `MISE_AUTO_INSTALL` unset and all three effective mise settings as `true`.
-  `mise which` resolved Node, Java, and Python to mise-managed installs; the
-  selected versions were Node 26.13.0, Java 27.0.1, and Python 3.15.2. `uv`
-  resolved to Homebrew and remained at 0.13.7.
+  `mise which node` returned
+  `$HOME/.local/share/mise/installs/node/latest/bin/node`; `mise which java`
+  returned `$HOME/.local/share/mise/installs/java/latest/bin/java`; and
+  `mise which python` returned
+  `$HOME/.local/share/mise/installs/python/latest/bin/python`. The selected
+  versions were Node 26.13.0, Java 27.0.1, and Python 3.15.2. `JAVA_HOME`
+  resolved to the mise-managed 27.0.1+1 install. `uv` resolved to
+  `/opt/homebrew/bin/uv` and remained at 0.13.7.
 - A fresh interactive login Zsh in the checkout resolved ShellCheck 0.11.0 and
-  Python 3.15.2 from the repository's mise selections. Zsh remained outside
-  mise and resolved to Homebrew Zsh 5.9.2 (with `/bin/zsh` also available).
+  Python 3.15.2 from the repository's mise selections. `mise which shellcheck`
+  returned `$HOME/.local/share/mise/installs/aqua-koalaman-shellcheck/latest/shellcheck-v0.11.0/shellcheck`;
+  `mise which python` returned the mise-managed Python path above. Zsh remained
+  outside mise and resolved to Homebrew Zsh 5.9.2 (with `/bin/zsh` also
+  available).
 - uv's `UV_PYTHON_DOWNLOADS` override and `python-downloads` configuration were
   absent, leaving its normal interpreter-download fallback available. Homebrew,
   uv-managed, OS, and existing mise Python/runtime installations remained
@@ -49,6 +57,7 @@
   and all 37 Python unit tests.
 - The setup test `test_setup_resets_legacy_settings_and_selects_floating_global_defaults`
   passed, including its second execution against disposable fake manager state.
-  The live setup was run once; post-migration checks were read-only.
+  The live setup was run once; the subsequent fresh-shell and preservation
+  inspections were read-only.
 - Live verification covered this Apple Silicon macOS machine only. Linux
   behavior was not live-tested.
