@@ -8,14 +8,32 @@ copies of the shared configuration or named profiles.
 
 ## Create local files
 
-From the repository checkout, run:
+The local files are optional and have no generator or committed templates. To
+create missing, empty files without replacing existing paths, run:
 
 ```sh
-./scaffold-local
+local_dir="${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles"
+(
+  set -eu
+  umask 077
+  mkdir -p "$local_dir"
+  for name in env.zsh interactive.zsh; do
+    file="$local_dir/$name"
+    if [ -e "$file" ] || [ -L "$file" ]; then
+      printf 'Kept existing path: %s\n' "$file"
+    elif (set -C; : > "$file") 2>/dev/null; then
+      printf 'Created: %s\n' "$file"
+    else
+      printf 'Could not safely create: %s\n' "$file" >&2
+      exit 1
+    fi
+  done
+)
 ```
 
-This copies harmless commented examples into
-`${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/`:
+New directories and files are owner-only (normally mode `700` and `600`).
+Existing files, symlinks, contents, and permissions are left untouched. Edit only
+the files you need:
 
 - `env.zsh`: minimal environment additions for **every Zsh**, including scripts
   and `zsh -c`. Keep it quiet and fast; no interactive setup or credentials
@@ -24,25 +42,13 @@ This copies harmless commented examples into
   overrides. It is the **last preference phase**, after shared aliases and
   integrations; syntax highlighting initializes afterward to see local widgets.
 
-Edit those external files incrementally; do not copy the shared startup files.
-For example, uncomment `export EDITOR=vi` in `env.zsh` for all new Zsh sessions,
-or `alias j='just --verbose'` in `interactive.zsh` for interactive sessions only.
-The examples do nothing until edited. Set/export `XDG_CONFIG_HOME` in the
-launching environment **before Zsh starts** to choose a different directory;
-setting it inside a local file is too late to locate that file reliably.
-
-Repeated scaffolding only creates missing directories/files, never overwrites
-existing paths (including symlinks), and reports where to edit. New directories
-are owner-only and new files are owner-readable/writable; existing permissions
-and contents are unchanged. It installs no packages, collects no credentials,
-changes no login shell, and activates no profiles. Neither scaffolding nor local
-files are needed for native shared-configuration deployment with mise.
+Do not copy the shared startup files. Set `XDG_CONFIG_HOME` in the launching
+environment **before Zsh starts** to choose a nondefault directory; setting it
+inside a local file is too late to locate it.
 
 Local configuration is **not versioned or backed up here**. Arrange its secure
 backup separately if needed. Employer-specific settings and credentials must
-never go into the shared files or committed examples. For an existing-machine
-transition, preserve private exports in local `env.zsh` before removing their
-shared declarations; verify them without printing their values.
+never go into the shared files.
 
 ## Startup and PATH
 

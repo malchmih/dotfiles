@@ -17,41 +17,30 @@
 "apt:git" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 "apt:vim" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 
-# Optional repository-development tools; these are not core recovery packages.
+# Optional repository-development tool used only by the explicit check task.
 [tools]
-"aqua:koalaman/shellcheck" = "latest"
 python = "latest"
 
 # Invoke explicitly with `mise run check`; recovery and shell startup never run it.
 [tasks.check]
-description = "Check maintained shell scripts and Python tests"
+description = "Check shared Zsh syntax and shell regressions"
 run = '''
 set -eu
 
-for executable in bash zsh shellcheck python; do
+for executable in zsh python; do
     if ! command -v "$executable" >/dev/null 2>&1; then
         printf 'mise check: required command not found: %s\n' "$executable" >&2
         exit 1
     fi
 done
 
-set -- scaffold-local setup-toolchains
-
-printf '%s\n' 'Checking Bash syntax...'
-for script in "$@"; do
-    bash -n "$script"
-done
-
-printf '%s\n' 'Running ShellCheck...'
-shellcheck "$@"
-
 printf '%s\n' 'Checking Zsh syntax...'
 for startup in zshenv zprofile zshrc; do
-    zsh -n "$startup"
+    zsh -nf "$startup"
 done
 
-printf '%s\n' 'Running Python unit tests...'
-python -m unittest discover -s tests -v
+printf '%s\n' 'Running isolated shell regression tests...'
+PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
 '''
 
 # A process ZSH override keeps the checkout aligned with the shell preference.

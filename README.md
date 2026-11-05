@@ -1,8 +1,9 @@
 # Personal dotfiles
 
 Shared personal configuration and core recovery are declared natively with mise,
-alongside optional toolchain setup and upstream Daily maintenance. Recovery means
-becoming productive again, not cloning an entire workstation or exact versions.
+alongside optional personal toolchains and upstream Daily maintenance. Recovery
+means becoming productive again, not cloning an entire workstation or exact
+versions.
 Machine-specific and private settings stay outside this checkout.
 
 Targets: Apple Silicon macOS and Ubuntu/Debian desktop or WSL Linux on x86_64 or
@@ -66,8 +67,8 @@ preview, apply, status, repeat-run behavior, conflicts, and diagnostics.
 ## Repository checks
 
 Run the explicitly invoked local check task from the checkout with
-`mise run check`. It validates the maintained Bash and Zsh startup files and
-the existing Python tests. The repository-local development tools are optional
+`mise run check`. It validates shared Zsh startup syntax and runs the isolated
+shell regression tests. The repository-local development tools are optional
 and are not part of Core recovery; see the
 [check workflow](docs/maintenance.md#repository-checks) for prerequisites and
 deliberate install/upgrade commands.

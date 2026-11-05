@@ -46,9 +46,8 @@ Before cloning this repository:
 Install standalone mise before recovery, using the
 [official installer instructions](toolchains.md#standalone-mise-prerequisite).
 The repository does not install or update mise during bootstrap or shell startup.
-Do not install Homebrew-owned mise alongside it. Existing Homebrew mise users
-should follow the documented dependent-check and executable migration procedure
-before removing the formula.
+Review `type -a mise` and choose ownership manually if another copy is present;
+this setup does not remove or migrate an existing manager.
 
 Homebrew is not installed automatically. Check its current
 [installation requirements](https://docs.brew.sh/Installation) and
@@ -86,7 +85,7 @@ can leave earlier bootstrap phases applied; inspect native status and rerun afte
 resolving the reported issue.
 
 The packages, repositories, and dotfiles phases are selected explicitly. This
-excludes the repository's `[tools]` (ShellCheck and Python), its `check` task,
+excludes the repository's `[tools]` (Python), its `check` task,
 the `bootstrap` task, automatic shell activation, and account-shell changes. Core
 recovery therefore neither installs the development tools nor runs their checks.
 However, `--only` is not repository isolation: mise still merges the normal
@@ -113,8 +112,8 @@ this checkout; review its current supported integrations before use. See
 After recovery, open a new terminal and inspect native status if needed. Try
 `zsh -l` if the terminal does not already start Zsh. Optional next steps:
 
-- [Scaffold local configuration](local-configuration.md#create-local-files) for
-  incremental machine-specific additions; no local files are required.
+- [Create local configuration manually](local-configuration.md#create-local-files)
+  for machine-specific additions; no local files are required.
 - [Try the shell features](interactive-shell.md#try-it-in-a-fresh-terminal) and
   [fallback editor](editors.md).
 - [Set up development toolchains](toolchains.md) only if wanted.
@@ -184,9 +183,8 @@ checkout available because preference links point into it. If you move the
 checkout, run `mise dot apply` from the new location to repoint them. Topgrade is
 a Homebrew Core package declared in `mise.toml`; only the selected package
 bootstrap phase provisions it, and `mise dot apply` neither installs nor runs it.
-See [maintenance](maintenance.md) before using it. The optional toolchain helper
-remains checkout-local. See [OpenCode preferences](opencode.md) for scope and
-application-written edits.
+See [maintenance](maintenance.md) before using it and
+[OpenCode preferences](opencode.md) for scope and application-written edits.
 
 Links remain live into this checkout. Editing shared source files affects new
 sessions without rerunning `mise dot apply`. See

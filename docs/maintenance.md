@@ -77,12 +77,13 @@ From the reviewed checkout, explicitly run:
 mise run check
 ```
 
-The task requires `bash`, `zsh`, `shellcheck`, and `python`; it fails when one is
-missing. It checks the remaining Bash setup scripts and shared Zsh startup files,
-then runs the Python unit tests. These development tools are separate from Core
-Recovery and are not invoked by startup, package provisioning, or Topgrade. If
-needed, install the declared local check tools from the checkout with:
+The task requires `zsh` and `python` on `PATH` and fails when either is missing.
+It checks the shared Zsh startup syntax, then runs the isolated shell regression
+tests. Python is a repository-development prerequisite, separate from optional
+personal runtimes and Core Recovery; neither the task nor its tests are invoked by
+startup, package provisioning, or Topgrade. If needed, install the declared
+repository Python from the checkout with:
 
 ```sh
-mise install aqua:koalaman/shellcheck python
+mise install python
 ```

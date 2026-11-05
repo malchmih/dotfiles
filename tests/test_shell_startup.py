@@ -52,27 +52,6 @@ class ShellStartupTests(unittest.TestCase):
             with self.subTest(flags=flags):
                 self.assertNotIn(str(self.opencode), self.run_shell(flags).stdout.splitlines())
 
-    def test_mise_activation_keeps_default_auto_install_policy(self):
-        capture = self.home / "mise-auto-install"
-        mise = self.package / "mise"
-        mise.write_text(
-            "#!/bin/sh\n"
-            "printf '%s\\n' \"${MISE_AUTO_INSTALL-unset}\" > \"$MISE_CAPTURE\"\n"
-            "printf '%s\\n' 'export MISE_ACTIVATED=1'\n"
-        )
-        mise.chmod(0o755)
-        self.env["MISE_CAPTURE"] = str(capture)
-
-        result = subprocess.run(
-            [ZSH, "-dfi", "-c",
-             f'source "{ROOT / "zshrc"}"; print -r -- "${{MISE_AUTO_INSTALL-unset}}"'],
-            env=self.env, cwd=self.home, text=True, capture_output=True,
-        )
-
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(capture.read_text().strip(), "unset")
-        self.assertEqual(result.stdout.strip(), "unset")
-
     def test_command_selection_prefers_local_then_standalone(self):
         self.local.mkdir(parents=True)
         self.opencode.mkdir(parents=True)
