@@ -35,7 +35,11 @@ case "$(uname -s)" in
     *) die 'Only macOS and Ubuntu/Debian desktop or WSL Linux are supported.' ;;
 esac
 [[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo.'
-command -v mise >/dev/null || die 'Standalone mise must be installed and on PATH; see docs/toolchains.md.'
+mise="$HOME/.local/bin/mise"
+[[ -f "$mise" && -x "$mise" ]] || die 'Official standalone mise must be installed at ~/.local/bin/mise; see docs/toolchains.md.'
+actual_mise="$(command -v mise || true)"
+[[ -n "$actual_mise" && "$actual_mise" -ef "$mise" ]] ||
+    die 'Standalone mise at ~/.local/bin/mise must be first on PATH; see docs/toolchains.md.'
 command -v brew >/dev/null || die 'Homebrew must be on PATH; see docs/core-tools.md.'
 brew_prefix="$(brew --prefix)"
 
@@ -44,7 +48,7 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
 # Refuse visible competing uv owners before installing anything, including uvx.
-# mise is standalone and selected directly from PATH; uv remains Homebrew-owned.
+# mise uses the official standalone default path; uv remains Homebrew-owned.
 for tool in uv uvx; do
     actual="$(command -v "$tool" || true)"
     expected="$brew_prefix/bin/$tool"
@@ -69,16 +73,16 @@ done
 # Do not load or rewrite the caller's project configuration. Global/personal
 # configuration remains user-owned; review existing mise config before setup.
 cd "$HOME"
-mise settings set auto_install false
-mise settings set not_found_system_fallback false
-mise settings set upgrade.auto_prune false
+"$mise" settings set auto_install false
+"$mise" settings set not_found_system_fallback false
+"$mise" settings set upgrade.auto_prune false
 # Resolve fresh stable releases, even if an older matching version is installed.
 # Pin the result so later prompts/install requests do not move the defaults.
 MISE_PRERELEASES=false MISE_FETCH_REMOTE_VERSIONS_CACHE=0s \
-    mise use --global --pin node@latest java@temurin
-MISE_AUTO_INSTALL=false mise exec -- node --version
-MISE_AUTO_INSTALL=false mise exec -- java -version
-MISE_AUTO_INSTALL=false mise exec -- javac -version
+    "$mise" use --global --pin node@latest java@temurin
+MISE_AUTO_INSTALL=false "$mise" exec -- node --version
+MISE_AUTO_INSTALL=false "$mise" exec -- java -version
+MISE_AUTO_INSTALL=false "$mise" exec -- javac -version
 "$brew_prefix/bin/uv" --version
 printf '%s\n' 'Personal defaults selected. Apply shared configuration with ./install from the checkout, then open a fresh terminal.' \
     'Existing pipx applications are unchanged. See docs/toolchains.md for project/IDE use.'

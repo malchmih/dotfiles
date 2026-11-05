@@ -26,12 +26,14 @@ curl -fsSL https://mise.run | sh
 
 Leave `MISE_VERSION` unset: the official installer selects its current stable
 release (with its release-age delay) and installs the executable at
-`$HOME/.local/bin/mise`. This is an explicit install, not an update policy; do
-not pin a mise executable in this repository, add a downloader wrapper, or use
-Homebrew to install a second mise. The ordinary installer endpoint above does
-not append shell activation. Do not use `https://mise.run/zsh`: shared Zsh
-configuration already conditionally activates mise, and the shell-specific
-installer can append another activation block.
+`$HOME/.local/bin/mise`. Optional setup requires this default path and verifies
+that it is the `mise` selected first on `PATH`; do not override the install path
+for this workflow. This is an explicit install, not an update policy; do not pin
+a mise executable in this repository, add a downloader wrapper, or use Homebrew
+to install a second mise. The ordinary installer endpoint above does not append
+shell activation. Do not use `https://mise.run/zsh`: shared Zsh configuration
+already conditionally activates mise, and the shell-specific installer can
+append another activation block.
 
 Shared `.zshenv` prepends `$HOME/.local/bin` on new Zsh sessions. After applying
 the shared links, open a fresh shell; in the current shell, add that directory
@@ -72,8 +74,9 @@ Before setup, inspect `type -a mise uv uvx node java` and existing mise global/h
 configuration, if any (normally `${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml`
 and any home `mise.toml`/`.tool-versions`). Setup uses your personal configuration,
 not an isolated manager home; existing hooks, backend overrides, and settings
-remain yours to review. `mise` must resolve to the intended standalone executable.
-Do not run setup from an unreviewed checkout.
+remain yours to review. Setup requires `$HOME/.local/bin/mise` to be executable
+and selected first on `PATH`; it fails rather than falling back to a Homebrew
+copy. Do not run setup from an unreviewed checkout.
 
 ```sh
 brew update                  # explicit package-definition refresh, not upgrades
@@ -87,8 +90,9 @@ javac -version
 uv --version
 ```
 
-Setup requires the standalone mise executable on `PATH`; it never installs or
-marks mise with Homebrew. It installs only missing Homebrew `uv`, marks `uv` as
+Setup requires the official standalone executable at `$HOME/.local/bin/mise` and
+verifies that it wins PATH resolution; it never installs or marks mise with
+Homebrew. It installs only missing Homebrew `uv`, marks `uv` as
 explicitly requested (including if previously a dependency), and retains its
 installed version. Homebrew auto-refresh, cleanup, and installed-dependent checks
 are disabled just as in core setup. Required dependencies may still be installed
