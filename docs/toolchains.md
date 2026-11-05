@@ -27,13 +27,13 @@ curl -fsSL https://mise.run | sh
 Leave `MISE_VERSION` unset: the official installer selects its current stable
 release (with its release-age delay) and installs the executable at
 `$HOME/.local/bin/mise`. Optional setup requires this default path and verifies
-that it is the `mise` selected first on `PATH`; do not override the install path
-for this workflow. This is an explicit install, not an update policy; do not pin
-a mise executable in this repository, add a downloader wrapper, or use Homebrew
-to install a second mise. The ordinary installer endpoint above does not append
-shell activation. Do not use `https://mise.run/zsh`: shared Zsh configuration
-already conditionally activates mise, and the shell-specific installer can
-append another activation block.
+that regular executable (not a symlink) is the `mise` selected first on `PATH`;
+do not override the install path for this workflow. This is an explicit install,
+not an update policy; do not pin a mise executable in this repository, add a
+downloader wrapper, or use Homebrew to install a second mise. The ordinary
+installer endpoint above does not append shell activation. Do not use
+`https://mise.run/zsh`: shared Zsh configuration already conditionally activates
+mise, and the shell-specific installer can append another activation block.
 
 Shared `.zshenv` prepends `$HOME/.local/bin` on new Zsh sessions. After applying
 the shared links, open a fresh shell; in the current shell, add that directory

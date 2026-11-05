@@ -183,7 +183,8 @@ Upgrading mise/uv binaries is **not** selecting new runtime versions:
 - Rerun `./setup-toolchains` only to deliberately reselect newest-stable personal
   Node/Temurin JDK pins. It runs from home, preserves older installations and
   unrelated global entries, and does not rewrite project declarations. Review
-  home config/hooks first. It can install missing mise/uv, unlike maintenance.
+  home config/hooks first. It requires standalone mise and can install missing
+  Homebrew uv, unlike maintenance.
 - Project pins/lockfiles and dependencies remain project decisions. For a
   reviewed project, use `mise install` for declared versions; inspect `mise
   outdated` and the scope of `mise upgrade` before deliberately changing them.

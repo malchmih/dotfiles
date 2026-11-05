@@ -36,7 +36,8 @@ case "$(uname -s)" in
 esac
 [[ $EUID -ne 0 ]] || die 'Run as your ordinary user, not with sudo.'
 mise="$HOME/.local/bin/mise"
-[[ -f "$mise" && -x "$mise" ]] || die 'Official standalone mise must be installed at ~/.local/bin/mise; see docs/toolchains.md.'
+[[ -f "$mise" && -x "$mise" && ! -L "$mise" ]] ||
+    die 'Official standalone mise must be a regular executable at ~/.local/bin/mise; see docs/toolchains.md.'
 actual_mise="$(command -v mise || true)"
 [[ -n "$actual_mise" && "$actual_mise" -ef "$mise" ]] ||
     die 'Standalone mise at ~/.local/bin/mise must be first on PATH; see docs/toolchains.md.'
