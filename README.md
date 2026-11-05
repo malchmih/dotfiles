@@ -1,7 +1,7 @@
 # Personal dotfiles
 
 Shared personal configuration and core recovery are declared natively with mise,
-alongside explicit optional toolchain and maintenance commands. Recovery means
+alongside optional toolchain setup and upstream Daily maintenance. Recovery means
 becoming productive again, not cloning an entire workstation or exact versions.
 Machine-specific and private settings stay outside this checkout.
 
@@ -45,16 +45,20 @@ account shell is a [separate, deliberate action](docs/recovery.md#choose-the-acc
 - **Preview before applying.** The selected native bootstrap phases preview
   package, repository, and dotfile changes without installing or applying them.
 - **Native package provisioning still needs Homebrew's CLI for existing workflows.**
-  mise's built-in Homebrew backend does not invoke `brew`; the CLI remains needed
-  for shell integrations and maintenance. See [recovery](docs/recovery.md).
+  mise's built-in Homebrew backend does not invoke `brew`; keep the CLI on PATH
+  for shell integrations, Topgrade's Homebrew step, and targeted package work.
+  See [recovery](docs/recovery.md).
 - **Startup does not install anything.** Missing optional integrations are
   skipped; shared configuration works without local files or Oh My Zsh.
-- **Maintenance commands work from any directory.** `mise dot apply` links
-  `up`, `cleanup`, `update-tools`, and `update-system` into `~/.local/bin`, on the
-  configured Zsh PATH. Use `up` for reviewed daily updates and `cleanup` for
-  separately reviewed housekeeping. The optional toolchain helper stays
-  checkout-local. Linking does not run updates. Keep the checkout available
-  because the links point into it. See their [scopes](docs/maintenance.md) first.
+- **Daily maintenance uses upstream Topgrade.** Core Recovery declares the
+  `topgrade` package; invoke it directly with broad upstream detection and normal
+  prompts. Its detected scope can include runtime and injected pipx-package
+  updates and eligible integrations such as an Oh My Zsh update step. On
+  supported Linux, the system step can add or remove packages;
+  accepting the macOS update prompt can install every update Apple offers.
+  Topgrade's explicit Cleanup stays off by default. Use manager-native commands
+  for targeted work or occasional Cleanup; see [maintenance](docs/maintenance.md).
+  `mise dot apply` deploys configuration only; it does not install or run Topgrade.
 
 See [recovery and configuration deployment](docs/recovery.md) for trust/review,
 preview, apply, status, repeat-run behavior, conflicts, and diagnostics.
@@ -79,7 +83,7 @@ deliberate install/upgrade commands.
 | Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
 | Restore global OpenCode instructions and terminal preferences | [OpenCode preferences](docs/opencode.md) |
 | Opt into mise/uv, Node/Java/Python, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
-| Run daily updates, reviewed cleanup, or scoped maintenance | [Maintenance](docs/maintenance.md) |
+| Run Daily maintenance, targeted updates, or occasional Cleanup | [Maintenance](docs/maintenance.md) |
 
 The [glossary](GLOSSARY.md) defines the repository's scope and terminology.
 This repository retains the public-domain [license](LICENSE.md).

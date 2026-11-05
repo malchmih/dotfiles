@@ -2,6 +2,7 @@
 [bootstrap.packages]
 # mise's built-in Homebrew backend supports these Apple Silicon/Linux targets.
 "brew:gh" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
+"brew:topgrade" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
 "brew:ripgrep" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
 "brew:httpie" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
 "brew:fzf" = { version = "latest", os = ["macos/arm64", "linux/x64", "linux/arm64"] }
@@ -34,7 +35,7 @@ for executable in bash zsh shellcheck python; do
     fi
 done
 
-set -- cleanup scaffold-local setup-toolchains update-system update-tools up lib/maintenance.sh
+set -- scaffold-local setup-toolchains
 
 printf '%s\n' 'Checking Bash syntax...'
 for script in "$@"; do
@@ -68,11 +69,6 @@ ZSH = { default = "~/.oh-my-zsh" }
 "~/.zshrc" = { source = "zshrc", mode = "symlink" }
 "~/.zshenv" = { source = "zshenv", mode = "symlink" }
 "~/.zprofile" = { source = "zprofile", mode = "symlink" }
-"~/.local/bin/update-tools" = { source = "update-tools", mode = "symlink" }
-"~/.local/bin/update-system" = { source = "update-system", mode = "symlink" }
-"~/.local/bin/up" = { source = "up", mode = "symlink" }
-"~/.local/bin/cleanup" = { source = "cleanup", mode = "symlink" }
-
 # mise resolves xdg_config_home from XDG_CONFIG_HOME, falling back to ~/.config
 # when it is unset or empty.
 [dotfiles."opencode/AGENTS.md"]

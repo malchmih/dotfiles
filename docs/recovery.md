@@ -3,8 +3,9 @@
 [Documentation index](../README.md#guides)
 
 Recovery restores a useful core environment, not identical versions or an entire
-workstation. The root `mise.toml` declares core packages, the Oh My Zsh checkout,
-shared configuration links, and separate optional repository tools/check task.
+workstation. The root `mise.toml` declares core packages (including Topgrade), the
+Oh My Zsh checkout, shared configuration links, and separate optional repository
+tools/check task.
 The documented recovery command selects only the core phases explicitly; the
 repository check workflow, choosing an account shell, and selecting optional
 runtimes are separate actions. Full IDE setup, desktop customization, and private
@@ -37,9 +38,10 @@ Before cloning this repository:
 - **Both:** put the Homebrew CLI on the current shell's PATH using the installer's
   printed `eval "$(.../bin/brew shellenv)"` command. The usual supported prefixes
   are `/opt/homebrew` (Apple Silicon) and `/home/linuxbrew/.linuxbrew` (Linux).
-  The CLI remains required for shell integrations and existing maintenance
-  commands. mise's built-in Homebrew package backend installs into a compatible
-  prefix without invoking `brew`; it does not replace this CLI prerequisite.
+  The CLI remains required for shell integrations, Topgrade's Homebrew step, and
+  targeted manager commands. mise's built-in Homebrew package backend installs
+  into a compatible prefix without invoking `brew`; it does not replace this CLI
+  prerequisite.
 
 Install standalone mise before recovery, using the
 [official installer instructions](toolchains.md#standalone-mise-prerequisite).
@@ -75,12 +77,13 @@ mise dot status --verbose
 
 The [tool inventory](core-tools.md) lists selected packages and their owners.
 The core configuration declares latest Homebrew formulae on Apple Silicon macOS
-and the existing APT/Homebrew split on supported Linux. Native `apply` installs
-missing packages while an installed version satisfies a `latest` declaration;
-upgrades are explicit and use the existing maintenance workflow. Installing a
-missing formula can still resolve or install its required dependencies. Package
-application is not a transaction, and failures can leave earlier bootstrap phases
-applied; inspect native status and rerun after resolving the reported issue.
+and the existing APT/Homebrew split on supported Linux, including Topgrade.
+Native `apply` installs missing packages while an installed version satisfies a
+`latest` declaration; updates are run separately with Topgrade or targeted native
+manager commands. Installing a missing formula can still resolve or install its
+required dependencies. Package application is not a transaction, and failures
+can leave earlier bootstrap phases applied; inspect native status and rerun after
+resolving the reported issue.
 
 The packages, repositories, and dotfiles phases are selected explicitly. This
 excludes the repository's `[tools]` (ShellCheck and Python), its `check` task,
@@ -103,7 +106,9 @@ template is copied, Zsh is not launched, and `chsh` is not called. By default th
 checkout is `${ZSH:-$HOME/.oh-my-zsh}`; if using a custom absolute or `~/` `ZSH`
 path, export the same value when running mise bootstrap and in local `env.zsh`
 before interactive startup. The existing OMZ automatic updater policy remains
-unchanged; daily maintenance does not update this checkout.
+unchanged. Topgrade includes an Oh My Zsh update step, so running it can update
+this checkout; review its current supported integrations before use. See
+[maintenance](maintenance.md).
 
 After recovery, open a new terminal and inspect native status if needed. Try
 `zsh -l` if the terminal does not already start Zsh. Optional next steps:
@@ -118,7 +123,7 @@ After recovery, open a new terminal and inspect native status if needed. Try
 
 ## Apply shared configuration safely
 
-The repository-root `mise.toml` declares 11 individual symlinks. Each source path
+The repository-root `mise.toml` declares 7 individual symlinks. Each source path
 is relative to that file, so sources continue to follow the checkout location:
 
 | Shared source | Home-directory link |
@@ -128,10 +133,6 @@ is relative to that file, so sources continue to follow the checkout location:
 | `zshrc` | `~/.zshrc` |
 | `vimrc` | `~/.vimrc` |
 | `ideavimrc` | `~/.ideavimrc` |
-| `update-tools` | `~/.local/bin/update-tools` |
-| `update-system` | `~/.local/bin/update-system` |
-| `up` | `~/.local/bin/up` |
-| `cleanup` | `~/.local/bin/cleanup` |
 | `opencode/AGENTS.md` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md` |
 | `opencode/cli.json` | `${XDG_CONFIG_HOME:-$HOME/.config}/opencode/cli.json` |
 
@@ -164,7 +165,7 @@ when using a custom location. Native apply creates missing target parent
 directories.
 
 The direct `mise dot` commands apply native dotfiles entries from the loaded
-configuration (this repository declares the 11 links above). They do not
+configuration (this repository declares the 7 links above). They do not
 provision packages or tools, select runtimes, run maintenance or repository
 checks, or change the account shell; they do not run package/repository/tool
 bootstrap or task phases. Review
@@ -179,13 +180,12 @@ applied; inspect `mise dot status --verbose` before retrying.
 
 Only the declared targets are managed. There is no automatic stale broken-link
 sweep or broad prune: inspect and remove obsolete links deliberately. Keep the
-checkout available because links point into it. If you move the checkout, run
-`mise dot apply` from the new location to repoint them. The maintenance links
-also create their parent directory; Zsh puts `~/.local/bin` on PATH, so the
-commands work from any directory and resolve their shared implementation through
-the checkout symlink. Linking them does not run them; see
-[maintenance](maintenance.md) before use. The optional toolchain helper remains
-checkout-local. See [OpenCode preferences](opencode.md) for scope and
+checkout available because preference links point into it. If you move the
+checkout, run `mise dot apply` from the new location to repoint them. Topgrade is
+a Homebrew Core package declared in `mise.toml`; only the selected package
+bootstrap phase provisions it, and `mise dot apply` neither installs nor runs it.
+See [maintenance](maintenance.md) before using it. The optional toolchain helper
+remains checkout-local. See [OpenCode preferences](opencode.md) for scope and
 application-written edits.
 
 Links remain live into this checkout. Editing shared source files affects new

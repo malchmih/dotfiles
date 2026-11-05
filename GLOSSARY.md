@@ -23,7 +23,7 @@ Optional machine-specific or non-public additions outside the shared configurati
 An evidence-based assessment of the current machine's software and setup, covering correctness, improvement opportunities, core candidates, and cleanup candidates. Its outcome is advice, not changes to the environment.
 
 **Daily maintenance**:
-A user-initiated routine for reviewing and applying available updates to installed command-line tools, managed desktop applications, and native Linux packages. It includes awareness of available macOS updates, but not their installation, project dependency changes, or runtime selection.
+A user-initiated use of upstream Topgrade defaults to update detected software, runtimes, and eligible ecosystem integrations. Its Linux system step can add or remove packages; accepting the macOS system-update prompt can install all updates offered by Apple. It uses normal prompts, leaves explicit cleanup off by default, and does not automate reboots.
 _Avoid_: Update everything
 
 **Cleanup**:

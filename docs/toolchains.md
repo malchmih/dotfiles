@@ -121,7 +121,7 @@ should own each command.
 
 | Component | Selected source / update owner on both platforms |
 | --- | --- |
-| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); daily `up` includes `mise self-update` in its shared approval (also updates installed plugins by default) |
+| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); Topgrade may update detected mise/runtime installations under upstream defaults—see [maintenance](maintenance.md#daily-maintenance) |
 | uv / uvx | Supported [Homebrew formula](https://docs.astral.sh/uv/getting-started/installation/#homebrew); `brew upgrade uv`, not `uv self update` |
 | Node / npm | mise's built-in Node backend; newest stable upstream Node release |
 | Java / javac | mise's built-in Java backend; `java@latest` follows mise's default vendor (Temurin as of this writing) and default GA release type |
@@ -284,13 +284,12 @@ migration needs a separately intentional uninstall and reinstall, with its
 settings/data considered. Core/bootstrap Python remains OS/Homebrew-owned; uv
 does not replace the distribution's Python.
 
-- Refresh Homebrew formula definitions with `brew update`. Upgrade selected
-  **managers** deliberately: daily `up` offers a separate approval for native
-  `mise self-update` on standalone mise, and use `brew upgrade uv` for
-  Homebrew-owned uv. The default mise self-update also updates installed plugins;
-  its exact changes may be unknown until execution. Neither action selects newer
-  Node/Java/Python runtimes, upgrades uv-managed Python, project dependencies, or
-  pipx/uv applications.
+- Refresh Homebrew formula definitions with `brew update`; use `brew upgrade uv`
+  for Homebrew-owned uv or `mise self-update` for standalone mise when targeting
+  one manager. Topgrade's broad upstream detection may also update managers and
+  runtimes; see [Daily maintenance](maintenance.md#daily-maintenance). Updating a
+  manager is distinct from selecting new Node/Java/Python runtimes, upgrading
+  uv-managed Python, project dependencies, or pipx/uv applications.
 - Reselect newest-stable **personal runtimes**: rerun `./setup-toolchains`.
   This refreshes floating global requests, not project requirements, and retains
   old installations and environments. To upgrade the current global Node, Java,
@@ -307,8 +306,7 @@ does not replace the distribution's Python.
   and pipx-owned app upgrades are distinct deliberate operations, not manager
   updates. No scheduled/background upgrades are configured by this workflow.
 
-The separate [maintenance workflow](maintenance.md) provides `update-tools
-refresh|upgrade`: all installed Homebrew formulae (including managers), uv tool
-environments, and pipx apps, not only the core inventory. It does not reselect
-mise runtimes, upgrade uv-managed Python, or rewrite project declarations.
-Use the explicit runtime actions above when intended.
+For broad Daily maintenance, run [`topgrade`](maintenance.md#daily-maintenance).
+It uses upstream detected steps, which can include installed package managers,
+runtimes, and their managed tools. Use the manager-native commands above when you
+intend a targeted update.

@@ -1,383 +1,88 @@
-# Deliberate maintenance
+# Daily maintenance
 
 [Documentation index](../README.md#guides)
 
-After applying configuration with `mise dot apply` from the dotfiles checkout, run
-`up`, `cleanup`, `update-tools`, and `update-system` **from any directory**, as your
-ordinary account, after reading their scopes. mise links these commands into
-`~/.local/bin`, already on PATH in the configured Zsh sessions. Other shells need
-that directory on PATH too; no system-wide installation is performed. Keep the
-checkout in place because the links point into it. Before applying the links,
-you can still run `./up`, `./cleanup`, `./update-tools`, and `./update-system` from
-the checkout. Keep `lib/maintenance.sh` alongside the entry points; `up` and
-`cleanup` resolve their deployment symlinks to find this shared implementation.
+## Daily command
 
-Core recovery (`mise bootstrap --only packages,repos,dotfiles`), repository checks
-(`mise run check`), optional toolchain setup (`setup-toolchains`), applying
-configuration alone (`mise dot apply`), and maintenance are different actions.
-Nothing here runs on shell startup. The scripts work from Bash/Zsh without OMZ
-aliases/plugins.
+Run the upstream command directly:
+
+```sh
+topgrade
+```
+
+The root `mise.toml` declares the Homebrew Core `topgrade` package for the
+supported macOS and Linux targets. The selected package bootstrap phase
+provisions it; shell startup and `mise dot apply` do not install or run it. This
+repository adds no shared Topgrade configuration, step allowlist, custom-command
+bridge, or automatic approval. Existing local Topgrade settings are left alone.
+
+Topgrade uses broad upstream detection and normal confirmations. Depending on
+what is installed, its steps can update runtime managers and runtimes, eligible
+Git/shell/editor/container integrations (including an Oh My Zsh update step),
+and pipx applications including injected packages. The detected steps and their
+behavior can change upstream;
+check [Topgrade usage](https://github.com/topgrade-rs/topgrade#usage) and the
+[current configuration reference](https://github.com/topgrade-rs/topgrade/blob/main/config.example.toml)
+before relying on a particular integration.
+
+- On Linux, the system-update step can add or remove distribution packages.
+- On macOS, accepting the system-update prompt can install **all** updates Apple
+  offers, including a major macOS upgrade if one is offered. Review the versions
+  before accepting.
+- Topgrade's optional cleanup remains at its upstream off-by-default setting.
+  This does not disable package-manager housekeeping that is part of an update.
+- System updates can require a later restart; no reboot automation is added.
+- `topgrade --dry-run` prints commands but can still run detection probes. It is
+  not a guaranteed frozen summary of every change an update may make.
+
+## Targeted updates
+
+For a narrow package update, use that manager directly. For example:
+
+```sh
+brew update
+brew upgrade <formula...>
+sudo apt-get update
+sudo apt-get install --only-upgrade <package...>
+```
+
+## Occasional Cleanup
+
+Inspect the manager's proposed removals first:
+
+```sh
+brew autoremove --dry-run
+brew cleanup --dry-run
+apt-get --simulate autoremove
+```
+
+Then, if the proposed removals are wanted, use the native commands and their
+normal prompts:
+
+```sh
+brew autoremove
+brew cleanup
+sudo apt-get autoremove
+```
+
+Autoremove can discard dependencies a manager considers unused; cache cleanup
+removes local fallback files. Review each manager's output and retain anything
+you still need. Topgrade's optional cleanup remains off by default.
 
 ## Repository checks
 
-From the reviewed repository checkout, explicitly run:
+From the reviewed checkout, explicitly run:
 
 ```sh
 mise run check
 ```
 
-This native mise task checks Bash syntax and runs ShellCheck over every maintained
-Bash entrypoint (`cleanup`, `scaffold-local`, `setup-toolchains`, `update-system`,
-`update-tools`, and `up`) plus `lib/maintenance.sh`. It runs `zsh -n` over the
-shared startup files (`zshenv`, `zprofile`, and `zshrc`), then runs the existing
-`python -m unittest discover -s tests -v` suite. It first requires `bash`, `zsh`,
-`shellcheck`, and `python` on PATH and exits nonzero with the missing command's
-name; Zsh-dependent test skips cannot make an incomplete check pass.
-
-The root `mise.toml` declares only the repository-local `latest` requests for
-ShellCheck through `aqua:koalaman/shellcheck` and Python through mise's built-in
-backend. Bash remains OS-provided; Zsh keeps its existing platform-specific core
-package owner and is not linted as Bash. These development tools and the check
-task are not Core packages or Recovery prerequisites. They are not invoked by
-startup, bootstrap, maintenance, CI, or a commit hook.
-
-When automatic installation is disabled or either mise tool is missing, install
-just these configured prerequisites explicitly from the checkout:
+The task requires `bash`, `zsh`, `shellcheck`, and `python`; it fails when one is
+missing. It checks the remaining Bash setup scripts and shared Zsh startup files,
+then runs the Python unit tests. These development tools are separate from Core
+Recovery and are not invoked by startup, package provisioning, or Topgrade. If
+needed, install the declared local check tools from the checkout with:
 
 ```sh
 mise install aqua:koalaman/shellcheck python
 ```
-
-Installing a missing `latest` request is not an upgrade of an already-installed
-version. To deliberately refresh only these repository tools, use:
-
-```sh
-mise upgrade --no-global aqua:koalaman/shellcheck python
-```
-
-These repo-only commands do not alter personal/global runtime selections or add
-runtime upgrades to Daily maintenance. Review the merged mise configuration and
-trust the checkout before running native tasks or install/upgrade commands.
-
-## Daily maintenance: `up`
-
-```sh
-up --help
-up                           # refresh/review, then approve eligible updates once
-```
-
-This is the morning entry point across macOS and Ubuntu/Debian, including WSL.
-It covers **all eligible installed inventories**, including optional/work tools,
-not just this repository's core selections:
-
-| Inventory | Preview | Approved action |
-| --- | --- | --- |
-| Homebrew formulae | `brew outdated --formula` after `brew update` | `brew upgrade --formula --yes` |
-| Homebrew casks (macOS, when installed) | `brew outdated --cask` | `brew upgrade --cask --yes` |
-| uv tools | `uv tool list`; exact upgrade changes **unknown** | `uv tool upgrade --all` |
-| pipx apps | `pipx list`; exact upgrade changes **unknown** | `pipx upgrade-all` |
-| Standalone mise + installed plugins | Exact release/plugin changes **unknown**; there is no frozen preview | After shared approval: `mise self-update --yes` |
-| APT (Ubuntu/Debian) | `apt-get --simulate upgrade --no-remove` after index refresh | `sudo apt-get upgrade --no-remove --yes` |
-| macOS software updates | `softwareupdate --list` | **No installation** |
-
-- **Refresh happens before approval.** `brew update` can update Homebrew itself;
-  APT refresh runs `sudo apt-get -o APT::Update::Error-Mode=any update`. The error
-  mode treats failed repository fetches as failure, rather than silently accepting
-  a partially stale index. Declining approval does not undo refresh changes.
-- **Authenticate upfront only for known privileged work.** APT work validates
-  sudo before metadata refresh or update previews. On macOS, `up` does not
-  prevalidate sudo or predict individual casks' privilege requirements. Homebrew
-  or a cask installer may request authorization during an upgrade if needed.
-  Brew itself is never run as root. Credential timeout or installer policy can
-  still cause later prompts; no password is captured or keepalive run.
-- **One approval covers eligible groups**, including mise/uv/pipx's disclosed unknown
-  changes. The prompt defaults to Yes (`[Y/n]`): Enter or `y`/`yes` (also
-  `Y`/`YES`) proceeds. A piped blank line also approves; EOF, `n`/`no`, or any
-  unrecognized answer cancels.
-  There is no `--yes` bypass for the inventory approval. These are native
-  listings, not a custom selectable package plan or a frozen transaction.
-  Inventories, metadata, and dependency resolution can change between preview
-  and execution.
-- **Standalone mise uses the shared approval.** `up` includes this step only
-  when `$HOME/.local/bin/mise` is a regular executable (not a symlink) and the
-  `mise` selected first on PATH refers to that file, matching `setup-toolchains`.
-  Missing, shadowed, or other installations are reported as a non-failing `SKIP`;
-  `up` does not migrate installations or guess ownership. Homebrew-owned mise
-  remains covered by the ordinary Homebrew formula inventory, not self-update.
-  See [toolchains](toolchains.md#transition-from-homebrew-owned-mise) for the
-  separate, one-time migration to standalone mise.
-  After the shared approval only, the wrapper runs native `mise self-update --yes`
-  using the checked standalone path; that flag carries the wrapper approval and
-  avoids a second prompt. Declining approval skips mise and all other upgrades.
-  No version is pinned and plugins are not disabled, so mise uses its native
-  latest-stable behavior and updates installed plugins by default. Exact release
-  and plugin changes may be unknown until execution; this is not a frozen preview.
-- **Use native default update policies.** Pins/exclusions remain effective. No
-  `--greedy`, force, prerelease, full-upgrade, or distribution-release-upgrade
-  behavior is added. Normal cask behavior can quit/restart apps or otherwise
-  disrupt work. Save your work first; no `--no-quit` safety guarantee is offered.
-- **Homebrew's built-in cleanup is allowed.** The wrapper unsets inherited
-  `HOMEBREW_NO_INSTALL_CLEANUP` for its subprocesses, unlike `update-tools` below.
-  No explicit cleanup or autoremove command is part of `up`.
-- **Independent work continues after failures.** Failed refresh skips that
-  manager's upgrades; a failed preview skips the affected inventory (a failed
-  formula preview skips Homebrew upgrades). Failed sudo validation skips APT
-  but permits independent unprivileged work. Failures are labeled and result in
-  nonzero exit status, even if other groups succeed or you later cancel. There is
-  no rollback. An ineligible standalone `mise` is reported as `SKIP`; a failed mise
-  self-update is labeled and contributes to nonzero status without blocking other
-  approved updates. Missing optional managers are skipped; missing native
-  APT is an error.
-- **Scope exclusions:** no App Store apps, runtime selection, project dependencies,
-  dotfiles pull, shell-framework update, Snap/Flatpak/vendor updater, or Windows-host
-  maintenance. Oh My Zsh retains its existing automatic update policy. Homebrew
-  may still update formula-owned runtimes, as explained under user tools below.
-  mise plugin updates do not select newer Node/Java/Python runtimes; `up` does
-  not run `mise install`, `mise use`, `mise upgrade`, bootstrap/repository phases,
-  or project dependency commands. No machine reboot is requested; native
-  package/installer scripts retain their own service and system-policy behavior.
-
-Plugin aliases/functions named `up` or `cleanup` are removed after OMZ loads so
-the PATH commands remain accessible. The later local preference phase can still
-override them deliberately. Inspect `type -a up cleanup` if another command wins;
-`~/.local/bin/up` and `~/.local/bin/cleanup` explicitly select the installed scripts.
-
-## Separate housekeeping: `cleanup`
-
-```sh
-cleanup --help
-cleanup                      # preview removals, approve once
-```
-
-This does not run automatically from `up`. It previews **Homebrew autoremove**
-(`brew autoremove --dry-run`), **Homebrew cache/old-version cleanup**
-(`brew cleanup --dry-run`), and on Ubuntu/Debian **APT autoremove**
-(`sudo apt-get --simulate autoremove`). After one approval it runs
-`brew autoremove`, `brew cleanup`, and `sudo apt-get autoremove --yes` for eligible
-managers, in that order. On Linux, sudo is validated upfront. Failed previews skip
-their manager's removals; independent failures continue and give nonzero status.
-
-Like `up`, the confirmation defaults to Yes (`[Y/n]`): Enter (including a piped
-blank line) or `y`/`yes` (also `Y`/`YES`) approves. EOF, `n`/`no`, and unrecognized
-answers cancel.
-
-Review unused dependencies carefully: manually used software can still be marked
-automatically installed. Cache/old-version removal frees space but removes some
-local fallback material. Native dry runs are not frozen transactions, and the
-subsequent cleanup may differ after autoremove or concurrent changes. No metadata
-refresh, extra aggressive flags, cask `zap`, application-preference deletion, or
-personal-data cleanup is requested. Homebrew is optional; missing APT on supported
-Linux is an error. On macOS, this command does not need upfront sudo.
-
-## Lower-level maintenance commands
-
-These existing entry points remain available with their original separate scopes.
-**Their upgrade invocation is consent to automatic package-manager confirmation.**
-They pass `--yes` to Homebrew and APT upgrades. uv/pipx upgrades already
-proceed without an upfront confirmation; macOS still requires one exact update
-label and has no general auto-confirm flag. This is not an unattended mode:
-authentication, configuration-file, installer, or other prompts may remain.
-No credentials are supplied, licenses automatically accepted, or force options
-added. Review candidates before invoking an upgrade.
-
-### User tools: whole selected inventories
-
-```sh
-update-tools --help
-update-tools refresh          # Homebrew itself + definitions/taps, NOT packages
-brew outdated --formula      # review candidates; inspection is manager-native
-uv tool list                 # if installed
-pipx list                    # if installed
-update-tools upgrade         # deliberate broad upgrade, not a preview
-```
-
-**`upgrade` covers ALL installed Homebrew formulae, uv tool environments, and
-pipx applications owned by the invoked managers**, including optional and work
-packages, dependencies, and managers—not just names in this repository's core
-inventory. Inspect `type -a brew uv pipx` and manager inventories first. Invoking
-the scripts is consent to that scope; there is no second custom confirmation.
-Use native targeted commands instead when a broad update is inappropriate.
-Homebrew's pins and each manager's constraints/exclusions still apply; this is
-not a promise every installed item changes version.
-
-- `refresh` runs `brew update`: it refreshes package definitions/taps **and
-  updates Homebrew itself**. It does not upgrade installed packages. uv/pipx
-  have no equivalent required global metadata-refresh step here; their upgrade
-  commands query their configured package indexes directly.
-- `upgrade` runs `brew upgrade --formula --yes`, `uv tool upgrade --all`, and
-  `pipx upgrade-all`, in that order. Homebrew auto-refresh and install cleanup
-  are disabled to keep the explicit refresh/upgrade distinction. Refresh first;
-  stale definitions otherwise mean stale upgrade candidates. No extra cleanup,
-  pruning, forced linking, uninstall, or migration is requested.
-- Homebrew upgrades its formula-owned managers (including optional mise/uv and
-  pipx if Homebrew owns it), and packaged fzf/autosuggestions/highlighting. It
-  does not inherently update the applications inside uv/pipx environments;
-  those receive their own commands afterward. A pipx installed by another
-  owner still updates its apps here, but **pipx itself stays with that owner**.
-  Do not use `mise self-update` or `uv self update` for Homebrew-owned managers.
-- Existing pipx applications stay with pipx. uv updates only its own tool
-  environments; no application is installed in the other manager or given a
-  competing executable link. Existing ownership conflicts are not repaired.
-  Inspect `type -a <command>`, `uv tool list`, and `pipx list` before adding tools.
-- Missing managers on PATH print `SKIP` and do not block the others. An invoked
-  manager failure prints `FAILED`, leaves partial progress in place, and the
-  other independent managers are still attempted. Any failure gives nonzero
-  exit status. All missing is a successful no-op with visible skips, **not**
-  evidence that an intended recovery is complete. Fix PATH or deliberately
-  install the optional layer before retrying. Nothing installs a missing manager.
-
-This is not a transaction or a custom dependency orchestrator. External package
-installers/build hooks still run their own code; review sources and policies.
-The user-tool command never invokes sudo or APT/Apple OS maintenance. Homebrew
-formula upgrades can also update Homebrew-owned Node/Python/etc. if you installed
-them; the command does not claim exclusive runtime ownership outside the chosen
-mise/uv workflow. Configured taps and package indexes remain user-owned.
-
-#### OMZ and runtimes are distinct owners
-
-Oh My Zsh retains `zstyle ':omz:update' mode auto` and its native cadence. For
-an immediate manual update, run **`omz update` in interactive Zsh**, with the
-desired `ZSH` checkout loaded. It updates OMZ, bundled plugins, and awesomepanda,
-not external Homebrew-packaged plugins. Missing OMZ does not block the scripts;
-core recovery can clone it later. The helper deliberately does not launch an
-interactive shell (which could trigger local code and the automatic updater).
-
-Upgrading mise/uv binaries is **not** selecting new runtime versions:
-
-- Rerun `./setup-toolchains` only to deliberately reselect floating latest
-  personal Node, Java, and CPython requests. It runs from home, preserves older
-  installations and unrelated global entries, and does not rewrite project
-  declarations. Review home config/hooks first. It requires standalone mise and
-  can install missing Homebrew uv, unlike maintenance. An explicit
-  `mise upgrade --global node java python` is a separate runtime-upgrade action;
-  neither action is part of Daily maintenance.
-- Project pins/lockfiles and dependencies remain project decisions. For a
-  reviewed project, use `mise install` for declared versions; inspect `mise
-  outdated` and the scope of `mise upgrade` before deliberately changing them.
-  Do not run a blanket runtime upgrade from arbitrary checkouts or add `--bump`
-  as routine cleanup.
-- uv-managed Python is separate from uv tools and bootstrap/system Python.
-  Inspect `uv python list --only-installed` and `uv python upgrade --help` before
-  an explicit `uv python upgrade` (managed Python patch updates, not a blanket
-  project or major-version change). No Python runtime upgrade, `uv lock
-  --upgrade`, project sync, or runtime deletion is requested by these
-  helpers. Tool upgrades may update their own environment dependencies.
-
-See [toolchain ownership and trust](toolchains.md) and
-[interactive shell updates](interactive-shell.md#updates-and-history).
-
-### Native packages and OS: a separate privileged decision
-
-```sh
-update-system --help
-update-system refresh
-# Review candidates and save work before the separate upgrade invocation.
-```
-
-#### Ubuntu/Debian desktop and WSL
-
-`refresh` runs **`sudo apt-get update`**, refreshing configured repository indexes,
-not installed software. `upgrade` runs **`sudo apt-get upgrade --no-remove --yes`**:
-
-```sh
-apt list --upgradable                  # inspection after refresh
-apt-get --simulate upgrade --no-remove # native preview; no sudo required
-update-system upgrade                 # APT confirmation is automatically accepted
-```
-
-This is the **whole native package inventory**, including APT-owned Zsh/Git/Vim,
-bootstrap Python, libraries, services, and optional native applications. Those
-remain in privileged distribution maintenance even though some are conceptually
-user tools. Homebrew formulae remain in `update-tools`; neither manager upgrades
-the other's packages. `--yes` accepts APT's confirmation without pausing for
-review; use the simulation above first if you want a preview. It does not bypass
-sudo authentication or set debconf/dpkg configuration-answer policies.
-`upgrade` does not implicitly refresh indexes, remove packages, invoke
-`full-upgrade`/`dist-upgrade`, change distribution releases,
-run autoremove, or request a reboot. Held/dependency-transition packages can stay
-back for separate administrator review. Native package scripts can restart
-services and configured system policy may have additional effects; the helper
-is not a sandbox or a way to disable existing unattended-upgrade policies.
-
-Use the ordinary account with sudo permission. Missing sudo/APT, unsupported
-distributions, authentication errors, repository/network errors, or locks fail
-visibly; the script stops that native action, does not remove locks, and does
-not try another package manager. Resolve the cause before retrying. A reboot
-requirement (for example `/var/run/reboot-required`) needs a separate decision.
-
-**Inside WSL**, these commands maintain only the Linux distribution's native
-packages. They do not update Windows, the WSL host/kernel, Microsoft Store apps,
-or firmware. Windows Update and an intentional host-side `wsl --update` are
-separate Windows workflows; no `wsl --shutdown` or reboot is invoked here.
-Linux desktop kernel/service/reboot behavior cannot be assumed for WSL.
-
-#### macOS
-
-`refresh` runs **`softwareupdate --list`** without sudo to scan/list Apple updates.
-It does not refresh Homebrew or install anything. After reviewing the exact
-version and label, request **one** update explicitly:
-
-```sh
-update-system upgrade 'EXACT LABEL COPIED FROM THE LIST'
-```
-
-This runs `sudo softwareupdate --install "$label"`, never `--all`, `--restart`,
-or `--fetch-full-installer`. Select maintenance updates for the current macOS
-major release, **not** a new major-release offer; the helper cannot infer your
-release policy from Apple's changing labels. Major upgrades are a separate
-manual System Settings workflow. Apple-owned system tools/Command Line Tools
-follow Apple's available updates, not Homebrew's formula inventory. Some updates
-need volume-owner authentication, MDM approval, a GUI, or a later restart;
-sudo alone is not guaranteed sufficient on Apple Silicon. Use System Settings
-when required. No password is collected or passed through stdin by this script,
-and no reboot is requested; installation may remain incomplete pending one.
-
-#### Optional native/GUI applications
-
-Homebrew **casks** and Mac App Store apps are intentionally outside both lower-level helpers:
-they are not formulae or Apple OS updates, and their installers may need admin
-approval or GUI interaction. `up` includes casks but not App Store apps. Inspect
-owners and use these separate native commands when wanted:
-
-```sh
-brew outdated --cask
-brew upgrade --cask           # all eligible installed casks; may ask for sudo
-mas outdated                 # optional macOS-only manager, signed-in App Store
-mas upgrade                  # all eligible App Store apps; may need approval
-```
-
-Normal Homebrew cask rules skip some auto-updating/`:latest` casks; inspect
-`brew outdated --cask --greedy` if needed, rather than silently overriding their
-policy. Do not run brew itself with sudo. Neither casks nor `mas` are Linux
-requirements. Linux Snap/Flatpak/vendor self-updaters also retain their own
-native ownership/policies and are not invoked here. No unrelated software is
-removed, migrated, or forcibly taken over by maintenance.
-
-## Recovery, troubleshooting, and future scheduling
-
-- Update this checkout deliberately with Git after reviewing changes; new shell
-  sessions see symlinked configuration immediately. No maintenance command pulls
-  the dotfiles repo, applies links, or changes the login shell. See
-  [recovery](recovery.md) for native mise deployment and status commands.
-- `mise bootstrap status`, `mise bootstrap packages status`,
-  `mise bootstrap repos status`, and `mise dot status --verbose` inspect native
-  declared state; they are not shell-correctness or PATH/version checks. On errors
-  inspect manager-native output, `type -a`, `brew doctor`, available disk space,
-  repository/index access, configured pins, and environment ownership. Do not fix
-  failures by indiscriminate sudo, deleting runtimes/locks, or reinstalling apps
-  under another manager.
-- Optional scheduling is **future work only**. If later wanted, choose manager
-  scopes, notifications/logs, network/session PATH, credentials, failure policy,
-  and a safe maintenance window before designing a cron/launchd/systemd job.
-  Privileged native maintenance and interactive authentication need separate
-  policy. No jobs, timers, services, or scheduling subsystem are added or enabled
-  here. This does not disable the retained component-native OMZ automatic updater
-  or existing OS/application update policies.
-
-## Existing maintenance test coverage
-
-The `mise run check` task includes the existing Python unittest suite, which uses
-an isolated PATH with fake managers and Linux identity fixtures; no real upgrade,
-cleanup, sudo authentication, or OS update is performed. It also checks the
-maintained Bash entrypoints, shared maintenance library, and shared Zsh startup
-files described above.

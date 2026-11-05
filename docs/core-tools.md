@@ -25,13 +25,14 @@ installs missing packages and accepts any installed version; it does not broadly
 upgrade installed selections. The built-in Homebrew backend installs into a
 Homebrew-compatible prefix without invoking the `brew` CLI; installed formulae
 remain visible to the CLI in that prefix. Keep the CLI on PATH for shell
-integrations and the existing maintenance commands. On Linux, APT is the
-deliberate native-packaging exception for the shell, foundational Git, and
+integrations, Topgrade's Homebrew step, and targeted manager commands. On Linux,
+APT is the deliberate native-packaging exception for the shell, foundational Git, and
 fallback editor: distribution integration and support lifecycle outweigh
 upstream freshness, so their versions follow the supported distribution.
 
 | Core component / command | macOS provisioning / update | Ubuntu/Debian provisioning / update |
 | --- | --- | --- |
+| Topgrade / `topgrade` | mise `brew:topgrade`; Topgrade's detected Homebrew step or `brew upgrade topgrade` | mise `brew:topgrade`; Topgrade's detected Homebrew step or `brew upgrade topgrade` |
 | Zsh / `zsh` | mise `brew:zsh`; Homebrew CLI `brew upgrade zsh` (Apple Zsh remains available) | mise `apt:zsh`; distribution package maintenance |
 | Git / `git` | mise `brew:git`; Homebrew CLI `brew upgrade git` (Apple Git is bootstrap only) | mise `apt:git`; distribution package maintenance |
 | GitHub CLI / `gh` | mise `brew:gh`; Homebrew CLI `brew upgrade gh` | mise `brew:gh`; Homebrew CLI `brew upgrade gh` |
@@ -41,20 +42,23 @@ upstream freshness, so their versions follow the supported distribution.
 | Inline autosuggestions | mise `brew:zsh-autosuggestions`; Homebrew CLI targeted upgrade | mise `brew:zsh-autosuggestions`; Homebrew CLI targeted upgrade |
 | Syntax highlighting | mise `brew:zsh-syntax-highlighting`; Homebrew CLI targeted upgrade | mise `brew:zsh-syntax-highlighting`; Homebrew CLI targeted upgrade |
 | Vim / `vim` | mise `brew:vim`; Homebrew CLI `brew upgrade vim` (Apple Vim remains available) | mise `apt:vim`; distribution package maintenance |
-| Oh My Zsh | Unpinned shallow mise repository checkout; existing `omz update` policy | Same checkout and updater |
+| Oh My Zsh | Unpinned shallow mise repository checkout; native updater and Topgrade step | Same checkout and steps |
 
 Refresh Homebrew itself and definitions deliberately with `brew update` before
 targeted `brew upgrade <formula...>`; mise apply is not an update command. Keep
-APT-owned tools with OS/distribution maintenance. The existing maintenance
-commands retain their broad Homebrew and APT inventory scopes. Native package
-maintenance is distinct from OS release upgrades/reboots. Apple system
-Git/Zsh/Vim are owned by macOS/Command Line Tools updates, not Homebrew.
+APT-owned tools with OS/distribution maintenance. Topgrade is the Daily
+maintenance command and follows upstream detection and prompt defaults; see
+[maintenance](maintenance.md) for its scope and system-update implications.
+Native package maintenance is distinct from OS release upgrades/reboots. Apple
+system Git/Zsh/Vim are owned by macOS/Command Line Tools updates, not Homebrew.
 
-Oh My Zsh's automatic updater owns its checkout, bundled plugins, and themes,
-**not** the Homebrew-packaged shell enhancements. See [the shell guide](interactive-shell.md)
-for feature behavior and targeted updates. The separate [maintenance commands](maintenance.md)
-cover deliberate whole-inventory user-tool and native updates. Manager updates
-do not inherently upgrade language runtimes or every manager-owned application.
+Oh My Zsh retains its configured automatic updater for its checkout, bundled
+plugins, and themes, **not** the Homebrew-packaged shell enhancements. Topgrade
+also includes an Oh My Zsh update step, plus other eligible shell, editor,
+runtime, and package-manager integrations beyond this core inventory. See
+[the shell guide](interactive-shell.md) for shell behavior and
+[maintenance](maintenance.md) for the current upstream scope; use native manager
+commands for targeted updates.
 
 Start learning ripgrep with `rg --help` and
 [ripgrep's guide](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md).
@@ -79,8 +83,8 @@ manual migration, not part of recovery:
 
 These commands only change whether the package manager considers a package
 requested; they do not upgrade or remove packages. Repeat the review on each
-machine as appropriate. The separate [cleanup command](maintenance.md#separate-housekeeping-cleanup)
-remains an explicit, reviewed action.
+machine as appropriate. For occasional package housekeeping, see
+[native Cleanup commands](maintenance.md#occasional-cleanup).
 
 ## Curated optional inventory (manual, not provisioned)
 
