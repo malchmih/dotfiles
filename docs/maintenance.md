@@ -34,6 +34,7 @@ not just this repository's core selections:
 | Homebrew casks (macOS, when installed) | `brew outdated --cask` | `brew upgrade --cask --yes` |
 | uv tools | `uv tool list`; exact upgrade changes **unknown** | `uv tool upgrade --all` |
 | pipx apps | `pipx list`; exact upgrade changes **unknown** | `pipx upgrade-all` |
+| Standalone mise + installed plugins | Exact release/plugin changes **unknown**; there is no frozen preview | After separate approval: `mise self-update --yes` |
 | APT (Ubuntu/Debian) | `apt-get --simulate upgrade --no-remove` after index refresh | `sudo apt-get upgrade --no-remove --yes` |
 | macOS software updates | `softwareupdate --list` | **No installation** |
 
@@ -51,9 +52,22 @@ not just this repository's core selections:
   changes. The prompt defaults to Yes (`[Y/n]`): Enter or `y`/`yes` (also
   `Y`/`YES`) proceeds. A piped blank line also approves; EOF, `n`/`no`, or any
   unrecognized answer cancels.
-  There is no `--yes` bypass for the wrapper. These are native listings, not a
-  custom selectable package plan or a frozen transaction. Inventories, metadata,
-  and dependency resolution can change between preview and execution.
+  There is no `--yes` bypass for the inventory approval. These are native
+  listings, not a custom selectable package plan or a frozen transaction.
+  Inventories, metadata, and dependency resolution can change between preview
+  and execution.
+- **Mise self-update has a separate, default-No approval.** After listings and
+  before the inventory approval, `up` offers this step when `mise` is on PATH.
+  Only `y`/`yes` (also `Y`/`YES`) approves; Enter, EOF, `n`/`no`, or any other
+  answer declines. The prompt is independent: declining mise does not cancel
+  inventory approval, and approving mise does not approve inventory upgrades.
+  After approval only, the wrapper runs native `mise self-update --yes`; that
+  native flag carries the explicit wrapper approval and avoids a second prompt.
+  No version is pinned and plugins are not disabled, so mise uses its native
+  latest-stable behavior and updates installed plugins by default. Exact release
+  and plugin changes may be unknown until execution; this is not a frozen preview.
+  This step is for standalone mise. A package-managed build may reject native
+  self-update; that failure is reported and inventory work can still continue.
 - **Use native default update policies.** Pins/exclusions remain effective. No
   `--greedy`, force, prerelease, full-upgrade, or distribution-release-upgrade
   behavior is added. Normal cask behavior can quit/restart apps or otherwise
@@ -66,13 +80,18 @@ not just this repository's core selections:
   formula preview skips Homebrew upgrades). Failed sudo validation skips APT
   but permits independent unprivileged work. Failures are labeled and result in
   nonzero exit status, even if other groups succeed or you later cancel. There is
-  no rollback. Missing optional managers are skipped; missing native APT is an error.
+  no rollback. A missing `mise` is reported as `SKIP`; a failed mise self-update
+  is labeled and contributes to nonzero status without blocking the later
+  inventory approval/work. Missing optional managers are skipped; missing native
+  APT is an error.
 - **Scope exclusions:** no App Store apps, runtime selection, project dependencies,
   dotfiles pull, shell-framework update, Snap/Flatpak/vendor updater, or Windows-host
   maintenance. Oh My Zsh retains its existing automatic update policy. Homebrew
   may still update formula-owned runtimes, as explained under user tools below.
-  No machine reboot is requested; native package/installer scripts retain their
-  own service and system-policy behavior.
+  Mise plugin updates do not select newer Node/Java runtimes; `up` does not run
+  `mise install`, `mise use`, `mise upgrade`, bootstrap/repository phases, or
+  project dependency commands. No machine reboot is requested; native
+  package/installer scripts retain their own service and system-policy behavior.
 
 Plugin aliases/functions named `up` or `cleanup` are removed after OMZ loads so
 the PATH commands remain accessible. The later local preference phase can still

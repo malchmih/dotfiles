@@ -115,7 +115,7 @@ should own each command.
 
 | Component | Selected source / update owner on both platforms |
 | --- | --- |
-| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); explicitly run `mise self-update` to update the executable (also updates installed plugins by default) |
+| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); daily `up` offers a separate approval for `mise self-update` (also updates installed plugins by default) |
 | uv / uvx | Supported [Homebrew formula](https://docs.astral.sh/uv/getting-started/installation/#homebrew); `brew upgrade uv`, not `uv self update` |
 | Node / npm | mise's built-in Node backend; upstream Node distributions |
 | Java / javac | mise's built-in Java backend; Eclipse Temurin GA JDK distributions (not JRE-only) |
@@ -234,10 +234,12 @@ and reinstall, with its settings/data considered. Core bootstrap Python remains
 OS/Homebrew-owned; uv does not replace the distribution's Python.
 
 - Refresh Homebrew formula definitions with `brew update`. Upgrade selected
-  **managers** deliberately: `mise self-update` for standalone mise, and
-  `brew upgrade uv` for Homebrew-owned uv. The default mise self-update also
-  updates installed plugins. Neither action selects newer Node/JDK versions,
-  upgrades uv-managed Python, project dependencies, or pipx/uv applications.
+  **managers** deliberately: daily `up` offers a separate approval for native
+  `mise self-update` on standalone mise, and use `brew upgrade uv` for
+  Homebrew-owned uv. The default mise self-update also updates installed plugins;
+  its exact changes may be unknown until execution. Neither action selects newer
+  Node/JDK versions, upgrades uv-managed Python, project dependencies, or pipx/uv
+  applications.
 - Reselect newest-stable **personal runtimes**: rerun `./setup-toolchains`.
   This changes personal pins, not project requirements, and retains old runtimes.
 - For a reviewed project, `mise install` installs its declared versions;

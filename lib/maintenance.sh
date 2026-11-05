@@ -23,8 +23,11 @@ maintenance_main() {
             [[ $# -eq 1 ]] || { printf 'Usage: %s [--help]\n' "$action" >&2; return 1; }
             if [[ $action == up ]]; then
                 printf '%s\n' 'Usage: up [--help]' \
-                    'Refresh, review native listings, then approve once to upgrade installed tools/apps.' \
-                    'Includes Homebrew formulae/casks, uv tools, pipx apps, and Ubuntu/Debian APT packages.' \
+                    'Refresh and review native listings; approve mise self-update and installed inventories separately.' \
+                    'Inventories: Homebrew formulae/casks, uv tools, pipx apps, and Ubuntu/Debian APT packages.' \
+                    'Standalone mise uses native latest-stable self-update and updates installed plugins by default.' \
+                    'Exact mise/plugin changes are UNKNOWN until execution; its separate [y/N] approval runs mise self-update --yes.' \
+                    'Mise failures are reported; independent inventory work can continue. No runtime selection is done.' \
                     'macOS updates are listed only. Normal cask app quits/restarts and built-in brew cleanup are allowed.' \
                     'Refresh may update Homebrew itself before approval. uv/pipx exact changes are unknown.'
             else
@@ -45,7 +48,7 @@ maintenance_main() {
         return 1
     fi
 
-    local platform failed=0 brew_ready=0 apt_ready=0 casks=0 uv_ready=0 pipx_ready=0
+    local platform failed=0 brew_ready=0 apt_ready=0 casks=0 uv_ready=0 pipx_ready=0 mise_ready=0
     local needs_sudo=0 installed_casks answer
     case "$(uname -s)" in
         Darwin) platform=macos ;;
@@ -83,6 +86,13 @@ maintenance_main() {
         fi
     else
         printf '%s\n' 'SKIP: Homebrew not on PATH.'
+    fi
+    if [[ $action == up ]]; then
+        if command -v mise >/dev/null; then
+            mise_ready=1
+        else
+            printf '%s\n' 'SKIP: mise not on PATH; standalone self-update unavailable.'
+        fi
     fi
     if [[ $platform == linux ]]; then
         if command -v apt-get >/dev/null; then
@@ -152,6 +162,19 @@ maintenance_main() {
             if ! maintenance_run 'APT: unused dependencies proposed for removal.' sudo apt-get --simulate autoremove; then
                 apt_ready=0
             fi
+        fi
+    fi
+
+    if [[ $action == up && $mise_ready == 1 ]]; then
+        printf '\n%s\n' 'mise self-update: latest stable by default; installed plugins are updated too. Exact changes are UNKNOWN until execution.'
+        printf 'Approve standalone mise self-update? [y/N] '
+        answer=''
+        if IFS= read -r answer && [[ $answer == y || $answer == Y || $answer == yes || $answer == YES ]]; then
+            maintenance_run \
+                'mise: self-update standalone executable and installed plugins (exact changes UNKNOWN).' \
+                mise self-update --yes || :
+        else
+            printf '\n%s\n' 'Cancelled; standalone mise self-update was not run.'
         fi
     fi
 
