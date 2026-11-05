@@ -21,7 +21,7 @@ scripts work from Bash/Zsh without OMZ aliases/plugins.
 
 ```sh
 up --help
-up                           # refresh, review listings, approve once
+up                           # refresh/review, optionally approve mise, then approve inventories
 ```
 
 This is the morning entry point across macOS and Ubuntu/Debian, including WSL.

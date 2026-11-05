@@ -14,6 +14,19 @@ maintenance_run() {
     return 1
 }
 
+maintenance_confirm() {
+    local prompt=$1 default_yes=$2 answer=''
+    printf '%s' "$prompt"
+    IFS= read -r answer || return 1
+    if [[ -z $answer && $default_yes == 1 ]]; then
+        return 0
+    fi
+    case "$answer" in
+        y|Y|yes|YES) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 maintenance_main() {
     set -uo pipefail
     local action=$1
@@ -49,7 +62,7 @@ maintenance_main() {
     fi
 
     local platform failed=0 brew_ready=0 apt_ready=0 casks=0 uv_ready=0 pipx_ready=0 mise_ready=0
-    local needs_sudo=0 installed_casks answer
+    local needs_sudo=0 installed_casks
     case "$(uname -s)" in
         Darwin) platform=macos ;;
         Linux)
@@ -167,9 +180,7 @@ maintenance_main() {
 
     if [[ $action == up && $mise_ready == 1 ]]; then
         printf '\n%s\n' 'mise self-update: latest stable by default; installed plugins are updated too. Exact changes are UNKNOWN until execution.'
-        printf 'Approve standalone mise self-update? [y/N] '
-        answer=''
-        if IFS= read -r answer && [[ $answer == y || $answer == Y || $answer == yes || $answer == YES ]]; then
+        if maintenance_confirm 'Approve standalone mise self-update? [y/N] ' 0; then
             maintenance_run \
                 'mise: self-update standalone executable and installed plugins (exact changes UNKNOWN).' \
                 mise self-update --yes || :
@@ -181,9 +192,8 @@ maintenance_main() {
     if [[ $brew_ready == 0 && $apt_ready == 0 && $uv_ready == 0 && $pipx_ready == 0 ]]; then
         printf '\n%s\n' 'No eligible changes to approve.'
     else
-        printf '\nApprove %s for the eligible inventories above? [Y/n] ' "$action"
-        answer=''
-        if ! IFS= read -r answer || [[ -n $answer && $answer != y && $answer != Y && $answer != yes && $answer != YES ]]; then
+        printf '\n'
+        if ! maintenance_confirm "Approve $action for the eligible inventories above? [Y/n] " 1; then
             printf '\n%s\n' 'Cancelled; no approved upgrades/removals were run. Prior refresh changes remain.'
             [[ $failed == 0 ]]
             return
