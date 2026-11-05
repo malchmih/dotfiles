@@ -11,3 +11,7 @@ Use the default five triage labels. See `docs/agents/triage-labels.md`.
 ### Domain docs
 
 Use a single-context layout. See `docs/agents/domain.md`.
+
+## Testing
+
+Prefer temporary smoke checks and disposable validation environments; remove temporary test code and artifacts afterward. Add persistent tests only when their ongoing value is obvious; this repository does not need a standing test suite by default.
