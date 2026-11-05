@@ -14,22 +14,13 @@ commands inside the Linux distribution, preferably WSL 2. Check Homebrew's curre
 
 ## Recover the Core environment
 
-Use an ordinary account with Git and working HTTPS access to GitHub and package
-repositories.
+Start with Git, curl, internet access, and administrator privileges when prompted.
 
 - **macOS:** install Apple's Command Line Tools (`xcode-select --install`) for
-  bootstrap Git, then install [Homebrew](https://brew.sh/) using its current
-  instructions.
-- **Ubuntu/Debian:** ask an administrator to install APT and Homebrew's Linux
-  prerequisites, for example `git bash ca-certificates build-essential procps curl file sudo`;
-  then install [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux) as your
-  ordinary user.
-- **Both:** expose the Homebrew CLI in the current shell using the `brew shellenv`
-  command printed by its installer. Standard prefixes are `/opt/homebrew` on
-  Apple Silicon and `/home/linuxbrew/.linuxbrew` on Linux. Do not run ordinary
-  `brew` commands with `sudo`. mise's native Homebrew backend does not invoke the
-  CLI; the CLI is still needed for shell integrations, Topgrade, and targeted
-  package commands.
+  bootstrap Git.
+- **Ubuntu/Debian:** use the distribution's APT; see
+  [Homebrew's Linux requirements](https://docs.brew.sh/Homebrew-on-Linux#requirements)
+  if additional prerequisites are needed.
 
 Install standalone mise using the
 [official instructions](https://mise.jdx.dev/installing-mise.html#mise-run).
@@ -37,33 +28,41 @@ The standard installer command is:
 
 ```sh
 curl -fsSL https://mise.run | sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-This executes downloaded code as your user; review and trust the official
-installer before running it. Standalone mise installs under `$HOME/.local/bin`,
-which shared Zsh startup adds for new shells. If `type -a mise` finds another
-copy, choose ownership manually; Recovery does not replace or migrate it.
+The export makes the newly installed mise available in this terminal before the
+shared shell configuration is applied.
 
-Before trusting this checkout, review its `mise.toml`, your applicable
-system/global mise configuration, and any hooks those files enable. mise merges
-configuration; `mise trust` is not an isolation boundary. Then, from the checkout:
+Clone the repository:
 
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
 cd dotfiles
+```
+
+Trust the checkout and run Homebrew's official installer through mise:
+
+```sh
 mise trust
-mise config ls
+mise run install-homebrew
+```
+
+Follow the installer's `brew shellenv` instructions to make Homebrew available in
+this terminal.
+
+Preview and apply the Core environment:
+
+```sh
 mise bootstrap --only packages,repos,dotfiles --dry-run
 mise bootstrap --only packages,repos,dotfiles
 mise bootstrap status
 mise dot status --verbose
 ```
 
-The selected native phases preview/apply Core packages, the Oh My Zsh checkout,
-and shared links. They exclude optional repository tools/tasks and do not change
-shell activation or the account's default shell. `--only` selects phases; it does
-not isolate the checkout from merged configuration or hooks. `mise config ls`
-shows the configuration files loaded after trust.
+These phases install Core packages, clone Oh My Zsh, and apply shared links. They
+do not change the account's default shell. For repository maintenance, run
+`mise run check`.
 
 Package provisioning installs missing selections; it does not upgrade installed
 packages. Ordinary Recovery does not reset or update an existing Oh My Zsh

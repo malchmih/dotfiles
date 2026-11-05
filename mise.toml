@@ -21,6 +21,22 @@
 [tools]
 python = "latest"
 
+# Invoke explicitly before native package bootstrap; keep installer prompts intact.
+[tasks.install-homebrew]
+description = "Install Homebrew using its official installer"
+raw = true
+run = '''
+set -eu
+
+if command -v brew >/dev/null 2>&1; then
+    brew --version
+    exit 0
+fi
+
+installer="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+/bin/bash -c "$installer"
+'''
+
 # Invoke explicitly with `mise run check`; recovery and shell startup never run it.
 [tasks.check]
 description = "Check shared Zsh syntax and shell regressions"
