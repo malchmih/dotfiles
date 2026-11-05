@@ -1,22 +1,52 @@
 # Personal dotfiles
 
-Shared personal configuration and core recovery are declared natively with mise,
-alongside optional personal toolchains and upstream Daily maintenance. Recovery
-means becoming productive again, not cloning an entire workstation or exact
-versions.
-Machine-specific and private settings stay outside this checkout.
+This checkout declares shared configuration and Core environment Recovery with
+native mise. Recovery aims to make you productive, not clone a workstation or
+reproduce exact software versions. Machine-specific and private settings remain
+outside the shared configuration.
 
-Targets: Apple Silicon macOS and Ubuntu/Debian desktop or WSL Linux on x86_64 or
-ARM64. Intel Macs, native Windows, and Arch/Manjaro are not supported recovery
-targets; package-manager support limits also apply.
+Supported Recovery targets are Apple Silicon macOS and Ubuntu/Debian desktop or
+WSL Linux on x86_64 or ARM64. Intel Macs, native Windows, and Arch/Manjaro are not
+supported targets; Homebrew support and bottle availability also apply. Run WSL
+commands inside the Linux distribution, preferably WSL 2. Check Homebrew's current
+[installation requirements](https://docs.brew.sh/Installation) and
+[support tiers](https://docs.brew.sh/Support-Tiers) for changing platform limits.
 
-## Quick start
+## Recover the Core environment
 
-First follow the [bootstrap prerequisites](docs/recovery.md#bootstrap-prerequisites)
-and install standalone mise as described in the
-[mise prerequisite](docs/toolchains.md#standalone-mise-prerequisite). Review the
-checkout's `mise.toml` and the system/global mise configuration before trusting
-the checkout. Then, as your ordinary account:
+Use an ordinary account with Git and working HTTPS access to GitHub and package
+repositories.
+
+- **macOS:** install Apple's Command Line Tools (`xcode-select --install`) for
+  bootstrap Git, then install [Homebrew](https://brew.sh/) using its current
+  instructions.
+- **Ubuntu/Debian:** ask an administrator to install APT and Homebrew's Linux
+  prerequisites, for example `git bash ca-certificates build-essential procps curl file sudo`;
+  then install [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux) as your
+  ordinary user.
+- **Both:** expose the Homebrew CLI in the current shell using the `brew shellenv`
+  command printed by its installer. Standard prefixes are `/opt/homebrew` on
+  Apple Silicon and `/home/linuxbrew/.linuxbrew` on Linux. Do not run ordinary
+  `brew` commands with `sudo`. mise's native Homebrew backend does not invoke the
+  CLI; the CLI is still needed for shell integrations, Topgrade, and targeted
+  package commands.
+
+Install standalone mise using the
+[official instructions](https://mise.jdx.dev/installing-mise.html#mise-run).
+The standard installer command is:
+
+```sh
+curl -fsSL https://mise.run | sh
+```
+
+This executes downloaded code as your user; review and trust the official
+installer before running it. Standalone mise installs under `$HOME/.local/bin`,
+which shared Zsh startup adds for new shells. If `type -a mise` finds another
+copy, choose ownership manually; Recovery does not replace or migrate it.
+
+Before trusting this checkout, review its `mise.toml`, your applicable
+system/global mise configuration, and any hooks those files enable. mise merges
+configuration; `mise trust` is not an isolation boundary. Then, from the checkout:
 
 ```sh
 git clone https://github.com/malchmih/dotfiles.git
@@ -29,62 +59,58 @@ mise bootstrap status
 mise dot status --verbose
 ```
 
-Start a fresh terminal and use the native status commands to inspect declared
-state. Try `zsh -l` if your terminal does not already start Zsh; changing the
-account shell is a [separate, deliberate action](docs/recovery.md#choose-the-account-shell).
+The selected native phases preview/apply Core packages, the Oh My Zsh checkout,
+and shared links. They exclude optional repository tools/tasks and do not change
+shell activation or the account's default shell. `--only` selects phases; it does
+not isolate the checkout from merged configuration or hooks. `mise config ls`
+shows the configuration files loaded after trust.
 
-- **Recovery is phase-selected.** The documented mise command applies native core
-  packages, the Oh My Zsh checkout, and shared links. It excludes optional tools,
-  tasks, automatic shell activation, and account-shell changes. `--only` selects
-  phases; it does not isolate this checkout from merged system/global config or
-  hooks.
-- **Review before trusting.** mise combines repository configuration with your
-  normal global/system configuration; trust is not an isolation boundary. Check
-  loaded files and applicable hooks before applying.
-- **Conflicting regular files and directories are preserved.** Native apply
-  reports conflicts; do not use `--force`. Write failures are not transactional.
-- **Preview before applying.** The selected native bootstrap phases preview
-  package, repository, and dotfile changes without installing or applying them.
-- **Native package provisioning still needs Homebrew's CLI for existing workflows.**
-  mise's built-in Homebrew backend does not invoke `brew`; keep the CLI on PATH
-  for shell integrations, Topgrade's Homebrew step, and targeted package work.
-  See [recovery](docs/recovery.md).
-- **Startup does not install anything.** Missing optional integrations are
-  skipped; shared configuration works without local files or Oh My Zsh.
-- **Daily maintenance uses upstream Topgrade.** Core Recovery declares the
-  `topgrade` package; invoke it directly with broad upstream detection and normal
-  prompts. Its detected scope can include runtime and injected pipx-package
-  updates and eligible integrations such as an Oh My Zsh update step. On
-  supported Linux, the system step can add or remove packages;
-  accepting the macOS update prompt can install every update Apple offers.
-  Topgrade's explicit Cleanup stays off by default. Use manager-native commands
-  for targeted work or occasional Cleanup; see [maintenance](docs/maintenance.md).
-  `mise dot apply` deploys configuration only; it does not install or run Topgrade.
+Package provisioning installs missing selections; it does not upgrade installed
+packages. Ordinary Recovery does not reset or update an existing Oh My Zsh
+checkout. A dirty checkout or one with a different origin is a conflict; inspect
+it rather than replacing it. Native status reports declared resources and links,
+not command resolution or shell behavior.
 
-See [recovery and configuration deployment](docs/recovery.md) for trust/review,
-preview, apply, status, repeat-run behavior, conflicts, and diagnostics.
+For links alone, use `mise dot apply --dry-run`, then `mise dot apply` and
+`mise dot status --verbose`. `mise dot apply` only manages declared links; it does
+not provision packages, repositories, Topgrade, runtimes, or the repository check.
+Regular-file and directory conflicts are preserved and reported: inspect them
+and resolve deliberately rather than using `--force`. Native apply is not a
+transaction; after a write failure, inspect status before retrying.
 
-## Repository checks
+The links point into this checkout, so keep it available. If you move the
+checkout, apply the links again from its new location. Open a fresh terminal to
+load the shared shell; run `zsh -l` to try it without changing your account's
+default shell. Recovery does not run `chsh` or install anything at shell startup.
 
-Run the explicitly invoked local check task from the checkout with
-`mise run check`. It validates shared Zsh startup syntax and runs the isolated
-shell regression tests. The repository-local development tools are optional
-and are not part of Core recovery; see the
-[check workflow](docs/maintenance.md#repository-checks) for prerequisites and
-deliberate install/upgrade commands.
+## Shared configuration
 
-## Guides
+The root `mise.toml` is the source of truth for selected packages and deployed
+files; this overview is not a full machine inventory.
 
-| I want to… | Guide |
-| --- | --- |
-| Recover the core environment or apply shared configuration | [Recovery](docs/recovery.md) |
-| Understand core package sources and choose optional applications | [Tools and ownership](docs/core-tools.md) |
-| Use shell bindings, suggestions, fzf, highlighting, and history | [Interactive shell](docs/interactive-shell.md) |
-| Add private settings or understand startup and PATH precedence | [Local configuration](docs/local-configuration.md) |
-| Use fallback Vim or the independent IdeaVim preference | [Editors](docs/editors.md) |
-| Restore global OpenCode instructions and terminal preferences | [OpenCode preferences](docs/opencode.md) |
-| Opt into mise/uv, Node/Java/Python, and project runtime workflows | [Development toolchains](docs/toolchains.md) |
-| Run Daily maintenance, targeted updates, or occasional Cleanup | [Maintenance](docs/maintenance.md) |
+- **Shell:** Zsh with Oh My Zsh, the awesomepanda theme, useful bundled plugins,
+  fzf, autosuggestions, and syntax highlighting. Optional enhancements are
+  guarded so the base shell remains usable when they are absent. See
+  [shell and Local configuration](docs/shell.md).
+- **Editors:** Vim is a lightweight terminal fallback with a small built-in
+  preference set. The optional IdeaVim preference shares only its `fd`
+  insert-mode mapping; no IDE or plugin is installed for it.
+- **OpenCode:** the declared links provide global agent instructions and small
+  CLI/TUI preferences whether or not the optional client is installed. The
+  client, credentials, provider choices, and model configuration remain local.
+  OpenCode may write to linked preference sources; review `git diff` before
+  committing changes.
 
-The [glossary](GLOSSARY.md) defines the repository's scope and terminology.
+These are live links into the checkout: editing a shared source affects new
+sessions. Optional **Local configuration** is not versioned here. For Daily
+maintenance, invoke `topgrade`; its broad scope and native package-manager
+implications are in the [maintenance and toolchain reference](docs/maintenance.md).
+Repository checks are separate from Core Recovery and are described there too.
+
+## User guides
+
+- [Shell and Local configuration](docs/shell.md)
+- [Maintenance and toolchains](docs/maintenance.md)
+- [Glossary](GLOSSARY.md)
+
 This repository retains the public-domain [license](LICENSE.md).

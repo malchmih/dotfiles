@@ -13,9 +13,10 @@ Linux and WSL; add the interop checks only when WSL is detected.
   Optional Snap, Flatpak, runtime, and Python-app managers matter only if present.
   Distinguish explicitly selected packages from dependencies before recommending
   cleanup. Never use autoremove/cleanup execution as an inventory shortcut.
-- Compare selected executable paths with `docs/core-tools.md`: native APT
-  ownership of foundational tools is deliberate, while other selected CLI tools
-  use Homebrew. Distribution versions/backports need not match upstream latest.
+- Compare selected executable paths with the root `mise.toml` and Recovery notes
+  in `README.md`: native APT ownership of foundational tools is deliberate, while
+  other selected CLI tools use Homebrew. Distribution versions/backports need not
+  match upstream latest.
   APT and Linuxbrew coexistence is not itself a conflict.
 - Inspect deployment links, startup/PATH ordering, shell integrations, and local
   overrides statically. Confirm manager activation and executable ownership

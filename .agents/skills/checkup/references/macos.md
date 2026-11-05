@@ -10,9 +10,10 @@ a mandatory command sequence or an exemption from consent.
   executables when investigating mixed installations; do not assume every second
   prefix is erroneous.
 - Resolve selected commands and inspect competing PATH entries without sourcing
-  shell files. Compare actual executable/link targets and owner with
-  `docs/core-tools.md`. Apple's system copies are intentional and OS-owned, not
-  duplicate installations to delete.
+  shell files. Compare actual executable/link targets and owner with the selected
+  resources in the root `mise.toml` and Recovery notes in `README.md`. Apple's
+  system copies are intentional and OS-owned, not duplicate installations to
+  delete.
 - Discover active Homebrew prefixes from existing paths and metadata. Inspect
   installed formulae/casks and requested-versus-dependency relationships using
   verified local-listing commands. Distinguish system, Homebrew, specialist,

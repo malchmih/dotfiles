@@ -14,10 +14,10 @@ or multi-machine scanner.
 ## 1. Establish context
 
 Read the repo's `AGENTS.md`, `GLOSSARY.md`, and relevant domain decisions. Read
-`docs/core-tools.md`, `docs/recovery.md`, `docs/local-configuration.md`,
-`docs/maintenance.md`, and `docs/toolchains.md` for intended ownership and scope.
-Consult other guides only for the features being inspected. Derive current
-selections and deployment targets from the repo, rather than a cached inventory.
+`README.md`, `docs/shell.md`, and `docs/maintenance.md` for current Recovery,
+configuration, and maintenance intent. Consult these guides only for the features
+being inspected. Derive current selections and deployment targets from the repo,
+rather than a cached inventory.
 
 Read [inspection rules](references/inspection.md) before collecting host evidence.
 Use low-risk inspection to identify OS/distribution, architecture, WSL status,
@@ -54,9 +54,9 @@ first, then investigate evidence-backed leads instead of scanning indiscriminate
 | Improvements/core | Is there a concrete capability gap or simpler ownership/workflow? Does a candidate fit the core environment or belong in optional inventory? |
 | Cleanup | Are there broken links, obsolete integrations, superseded installations, or software caches/data worth reviewing, with dependencies and retained data accounted for? |
 
-Discover managers and applications beyond the curated optional inventory when
-present; that inventory is neither a full machine manifest nor a requirement to
-install everything listed. Review the loaded mise configuration before using
+Discover installed managers and applications from local evidence. The README
+summarizes selected shared preferences, not a full machine manifest or optional
+application inventory. Review the loaded mise configuration before using
 `mise bootstrap packages status`, `mise bootstrap repos status`, or
 `mise dot status --verbose` as native declared-state diagnostics. Review trusted
 dotfile templates first because status can render them. Aggregate
