@@ -10,15 +10,70 @@ Gradle, Python runtime, or Python application is added by this workflow.
 ## Explicit opt-in
 
 Use the ordinary account and the [core bootstrap prerequisites](recovery.md#bootstrap-prerequisites)
-on macOS or Ubuntu/Debian desktop/WSL Linux, including Homebrew on PATH and working
-HTTPS. Homebrew's platform support/bottle limits still apply. Native Windows and
-Arch/Manjaro are not targets. Setup needs no sudo of its own.
+on supported macOS or Ubuntu/Debian desktop/WSL Linux, including Homebrew on PATH
+and working HTTPS. This workflow supports Apple Silicon macOS and x86_64/ARM64
+Ubuntu/Debian desktop or WSL Linux. Homebrew's platform support/bottle limits
+still apply to `uv`. Native Windows and Arch/Manjaro are not targets. Setup needs
+no sudo of its own.
+
+## Standalone mise prerequisite
+
+Install mise explicitly with the [official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run):
+
+```sh
+curl -fsSL https://mise.run | sh
+```
+
+Leave `MISE_VERSION` unset: the official installer selects its current stable
+release (with its release-age delay) and installs the executable at
+`$HOME/.local/bin/mise`. This is an explicit install, not an update policy; do
+not pin a mise executable in this repository, add a downloader wrapper, or use
+Homebrew to install a second mise. The ordinary installer endpoint above does
+not append shell activation. Do not use `https://mise.run/zsh`: shared Zsh
+configuration already conditionally activates mise, and the shell-specific
+installer can append another activation block.
+
+Shared `.zshenv` prepends `$HOME/.local/bin` on new Zsh sessions. After applying
+the shared links, open a fresh shell; in the current shell, add that directory
+to `PATH` if needed. Confirm `type -a mise` shows the intended standalone
+executable first and check it with `mise --version`. Shell startup never
+installs or updates mise.
+
+## Transition from Homebrew-owned mise
+
+If Homebrew currently owns mise, review the transition before removing that
+formula:
+
+1. Inspect installed dependents with `brew uses --installed mise`.
+2. Install the standalone binary using the command above. Keep existing mise
+   configuration, data, caches, state, plugins, and installed runtimes: by
+   default these are separate from the executable (`${XDG_CONFIG_HOME:-$HOME/.config}/mise`,
+   `~/.local/share/mise`, `~/.cache/mise` on Linux or `~/Library/Caches/mise` on
+   macOS, and `~/.local/state/mise`; see [mise directories](https://mise.jdx.dev/directories.html).
+   Custom `MISE_*_DIR`/`XDG_*` settings may move them. Do not run `mise implode`,
+   reset mise, or delete those directories.
+3. Before removing the formula, verify `"$HOME/.local/bin/mise" --version` and
+   check `type -a mise`; fix PATH so the standalone binary is selected first.
+4. Run `brew uninstall mise` without force or any bypass of Homebrew's dependency
+   checks. If Homebrew refuses because installed formulae depend on mise, stop:
+   that dependency is an unresolved ownership conflict. Review or deliberately
+   replace those dependents, or leave the formula installed until that decision
+   is made; do not silently force its removal.
+5. Open a fresh shell and verify `command -v mise`, `type -a mise`, and
+   `mise --version`. The selected command should resolve to the standalone
+   executable (normally `$HOME/.local/bin/mise`). Check existing selections
+   with `mise ls --current` and confirm your prior configuration is still present.
+
+The executable transition does not require reinitializing mise or reinstalling
+Node/Java. Finish any blocked Homebrew dependency migration separately and
+deliberately.
 
 Before setup, inspect `type -a mise uv uvx node java` and existing mise global/home
 configuration, if any (normally `${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml`
 and any home `mise.toml`/`.tool-versions`). Setup uses your personal configuration,
 not an isolated manager home; existing hooks, backend overrides, and settings
-remain yours to review. Do not run it from an unreviewed checkout.
+remain yours to review. `mise` must resolve to the intended standalone executable.
+Do not run setup from an unreviewed checkout.
 
 ```sh
 brew update                  # explicit package-definition refresh, not upgrades
@@ -32,23 +87,25 @@ javac -version
 uv --version
 ```
 
-Setup installs only missing Homebrew `mise` and `uv` formulae, marks both as
-explicitly requested (including if previously dependencies), and retains installed
-manager versions. Homebrew auto-refresh, cleanup, and installed-dependent checks
+Setup requires the standalone mise executable on `PATH`; it never installs or
+marks mise with Homebrew. It installs only missing Homebrew `uv`, marks `uv` as
+explicitly requested (including if previously a dependency), and retains its
+installed version. Homebrew auto-refresh, cleanup, and installed-dependent checks
 are disabled just as in core setup. Required dependencies may still be installed
 or upgraded; this is not a lock or transaction. Visible partial progress is kept
 on failure; fix the cause and rerun. There is no `--check`/dry-run mode for this
 action: `--help` is informational; invoking setup is an installation/selection request.
 
-Visible competing `mise`, `uv`, or `uvx` executables cause failure before package
-installation, rather than silent takeover. Inspect `type -a` and the original
-owner (standalone installer, pipx, Cargo, etc.). Resolve PATH/ownership deliberately;
-setup does not uninstall, force-link, or migrate them. Copies hidden later on PATH
-are not exhaustively audited. One manager should own each command.
+Setup invokes the first `mise` found on `PATH`; inspect `type -a mise` and resolve
+competing copies deliberately before running it. Visible competing `uv` or `uvx`
+executables cause failure before Homebrew package installation, rather than
+silent takeover. Setup does not uninstall, force-link, or migrate any existing
+manager. Copies hidden later on `PATH` are not exhaustively audited. One manager
+should own each command.
 
 | Component | Selected source / update owner on both platforms |
 | --- | --- |
-| mise | Supported [Homebrew formula](https://mise.jdx.dev/installing-mise.html); `brew upgrade mise`, not `mise self-update` |
+| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); explicitly run `mise self-update` to update the executable (also updates installed plugins by default) |
 | uv / uvx | Supported [Homebrew formula](https://docs.astral.sh/uv/getting-started/installation/#homebrew); `brew upgrade uv`, not `uv self update` |
 | Node / npm | mise's built-in Node backend; upstream Node distributions |
 | Java / javac | mise's built-in Java backend; Eclipse Temurin GA JDK distributions (not JRE-only) |
@@ -120,9 +177,10 @@ reviewed project. Existing shells keep their previous environment until replaced
 
 ## Scripts, IDEs, and Gradle
 
-Noninteractive Zsh does not activate mise. Put Homebrew's bin directory on PATH
-in the launching environment or minimal local `env.zsh` as described in
-[PATH setup](local-configuration.md#path-precedence-and-homebrew).
+Noninteractive Zsh does not activate mise, but `.zshenv` still puts the default
+standalone executable directory (`$HOME/.local/bin`) on `PATH`. Put Homebrew's
+bin directory on PATH too when a noninteractive shell needs `uv`, as described
+in [PATH setup](local-configuration.md#path-precedence-and-homebrew).
 From a reviewed project, prefer explicit execution, with installed tools:
 
 ```sh
@@ -165,9 +223,11 @@ reinstallation. An eventual migration needs a separately intentional uninstall
 and reinstall, with its settings/data considered. Core bootstrap Python remains
 OS/Homebrew-owned; uv does not replace the distribution's Python.
 
-- Refresh formula definitions: `brew update`. Upgrade selected **managers**:
-  `brew upgrade mise uv`. Neither inherently upgrades installed Node/JDKs,
-  uv-managed Python, project dependencies, or pipx/uv applications.
+- Refresh Homebrew formula definitions with `brew update`. Upgrade selected
+  **managers** deliberately: `mise self-update` for standalone mise, and
+  `brew upgrade uv` for Homebrew-owned uv. The default mise self-update also
+  updates installed plugins. Neither action selects newer Node/JDK versions,
+  upgrades uv-managed Python, project dependencies, or pipx/uv applications.
 - Reselect newest-stable **personal runtimes**: rerun `./setup-toolchains`.
   This changes personal pins, not project requirements, and retains old runtimes.
 - For a reviewed project, `mise install` installs its declared versions;

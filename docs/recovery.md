@@ -36,6 +36,12 @@ Before cloning this repository:
   `python3 --version` fails (Homebrew `python` on macOS; APT `python3` on Linux).
   Python is an installer prerequisite, not a selected project runtime.
 
+Standalone mise is **not** a core recovery prerequisite. Install it from the
+official standalone installer only if you opt into [development toolchains](toolchains.md);
+that workflow uses Homebrew for `uv`, not for mise. Existing Homebrew mise users
+should follow the documented dependent-check and executable migration procedure
+before removing the formula.
+
 Homebrew is not installed automatically. Check its current
 [installation requirements](https://docs.brew.sh/Installation) and
 [support tiers](https://docs.brew.sh/Support-Tiers) before relying on it. As of
