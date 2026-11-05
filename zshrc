@@ -1,7 +1,6 @@
 # Interactive setup never belongs in noninteractive shells.
 [[ -o interactive ]] || return
 
-alias j=just
 alias restart-podman='podman machine stop && podman machine start'
 
 # Keep a usable base shell even without Oh My Zsh or its plugins.
@@ -24,16 +23,6 @@ if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   # One upstream fzf integration, after OMZ's completion and base keybindings.
   # Command-only `zsh -ic` has no terminal; upstream widget setup warns there.
   (( $+commands[fzf] )) && [[ -t 0 && -t 1 ]] && plugins+=(fzf)
-  typeset -a _dotfiles_plugins
-  _dotfiles_plugins=()
-  for plugin in "${plugins[@]}"; do
-    if [[ -r "${ZSH_CUSTOM:-$ZSH/custom}/plugins/$plugin/$plugin.plugin.zsh" ||
-          -r "$ZSH/plugins/$plugin/$plugin.plugin.zsh" ]]; then
-      _dotfiles_plugins+=("$plugin")
-    fi
-  done
-  plugins=("${_dotfiles_plugins[@]}")
-  unset plugin _dotfiles_plugins
 
   source "$ZSH/oh-my-zsh.sh"
 fi

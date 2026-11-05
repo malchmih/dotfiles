@@ -36,12 +36,13 @@ Only interactive shells load these features; `.zshenv`/`.zprofile` do not start
 them. Shared `.zshrc` proceeds in this order:
 
 1. Base aliases, Emacs editing (`bindkey -e`), awesomepanda and OMZ update policy.
-2. If present, OMZ initializes completion **once**, then bundled plugins.
-   `common-aliases` and `git` are shared; `brew` and `gradle` require their
-   commands; `ubuntu` requires actual Ubuntu (`/etc/os-release`, including WSL
-   Ubuntu, not Debian/macOS). `fzf` requires the executable on PATH and terminal
-   input/output; command-only `zsh -ic` probes skip its widget integration to
-   avoid upstream ZLE-option warnings without a terminal.
+2. If present, OMZ initializes completion **once**, then loads the selected
+   bundled plugins. `common-aliases` and `git` are shared; `brew` and `gradle`
+   require their commands; `ubuntu` requires actual Ubuntu (`/etc/os-release`,
+   including WSL Ubuntu, not Debian/macOS). `fzf` requires the executable on PATH
+   and terminal input/output; command-only `zsh -ic` probes skip its widget
+   integration to avoid upstream ZLE-option warnings without a terminal. OMZ
+   owns availability of its bundled plugin files.
 3. **Only OMZ's `fzf` plugin** loads fzf's upstream completion/keybindings
    (`fzf --zsh` on current releases), after OMZ's base bindings. Thus fzf owns
    normal `Ctrl-R`. No `~/.fzf.zsh`, manual `eval "$(fzf --zsh)"`, second plugin

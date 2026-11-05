@@ -9,9 +9,10 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 ZSH = shutil.which("zsh")
+if ZSH is None:
+    raise RuntimeError("zsh is required to run the shell startup tests")
 
 
-@unittest.skipUnless(ZSH, "zsh is not installed")
 class ShellStartupTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -22,7 +23,13 @@ class ShellStartupTests(unittest.TestCase):
         self.local = self.home / ".local/bin"
         self.opencode = self.home / ".opencode/bin"
         self.package = self.home / "package/bin"
+        self.linuxbrew = self.home / "linuxbrew/.linuxbrew"
         self.package.mkdir(parents=True)
+        linux_zshenv = (ROOT / "zshenv").read_text().replace(
+            "/home/linuxbrew/.linuxbrew", str(self.linuxbrew)
+        )
+        self.linux_zshenv = self.home / "zshenv-linux"
+        self.linux_zshenv.write_text(linux_zshenv)
         self.env = {
             "HOME": str(self.home),
             "ZDOTDIR": str(self.home),
@@ -37,56 +44,102 @@ class ShellStartupTests(unittest.TestCase):
             text=True, capture_output=True, check=True,
         )
 
-    def test_existing_install_in_all_sessions_with_deduplicated_precedence(self):
-        self.opencode.mkdir(parents=True)
-        self.env["PATH"] += f":{self.opencode}:{self.opencode}"
-        for flags in ("-c", "-lc", "-ic", "-lic"):
-            with self.subTest(flags=flags):
-                paths = self.run_shell(flags).stdout.splitlines()
-                self.assertEqual(paths.count(str(self.opencode)), 1)
-                self.assertLess(paths.index(str(self.local)), paths.index(str(self.opencode)))
-                self.assertLess(paths.index(str(self.opencode)), paths.index(str(self.package)))
+    def test_path_order_and_deduplication_across_session_types(self):
+        flags_list = ("-c", "-lc", "-ic", "-lic")
+        for opencode_present in (False, True):
+            for linuxbrew_present in (False, True):
+                with self.subTest(opencode=opencode_present, linuxbrew=linuxbrew_present):
+                    if self.opencode.exists():
+                        shutil.rmtree(self.opencode)
+                    if self.linuxbrew.exists():
+                        shutil.rmtree(self.linuxbrew)
+                    self.env["PATH"] = f"{self.package}:/usr/bin:/bin"
 
-    def test_missing_install_is_not_added(self):
-        for flags in ("-c", "-lc", "-ic", "-lic"):
-            with self.subTest(flags=flags):
-                self.assertNotIn(str(self.opencode), self.run_shell(flags).stdout.splitlines())
+                    if opencode_present:
+                        self.opencode.mkdir(parents=True)
+                        self.env["PATH"] += f":{self.opencode}:{self.opencode}"
+                    if linuxbrew_present:
+                        brew_bin = self.linuxbrew / "bin"
+                        brew_bin.mkdir(parents=True)
+                        (self.linuxbrew / "sbin").mkdir()
+                        brew = brew_bin / "brew"
+                        brew.write_text("#!/bin/sh\n")
+                        brew.chmod(0o755)
+                        self.env["PATH"] = f"{brew_bin}:{self.env['PATH']}:{brew_bin}"
+                    else:
+                        # A partial prefix without its CLI must remain optional.
+                        (self.linuxbrew / "bin").mkdir(parents=True)
 
-    def test_command_selection_prefers_local_then_standalone(self):
-        self.local.mkdir(parents=True)
-        self.opencode.mkdir(parents=True)
-        for directory in (self.local, self.opencode, self.package):
-            command = directory / "opencode"
-            command.write_text("#!/bin/sh\n")
-            command.chmod(0o755)
-        self.assertEqual(self.run_shell("-lc", "command -v opencode").stdout.strip(),
-                         str(self.local / "opencode"))
-        (self.local / "opencode").unlink()
-        self.assertEqual(self.run_shell("-lc", "command -v opencode").stdout.strip(),
-                         str(self.opencode / "opencode"))
+                    script = (
+                        f'OSTYPE=linux-gnu; source "{self.linux_zshenv}"; '
+                        "print -rl -- $path"
+                    )
+                    for flags in flags_list:
+                        with self.subTest(flags=flags):
+                            paths = self.run_shell(flags, script).stdout.splitlines()
+                            self.assertEqual(len(paths), len(set(paths)))
+                            self.assertEqual(paths.count(str(self.local)), 1)
+                            self.assertIn(str(self.local), paths)
+                            self.assertIn(str(self.package), paths)
+                            self.assertLess(paths.index(str(self.local)),
+                                            paths.index(str(self.package)))
+
+                            if opencode_present:
+                                self.assertEqual(paths.count(str(self.opencode)), 1)
+                                self.assertLess(paths.index(str(self.local)),
+                                                paths.index(str(self.opencode)))
+                                self.assertLess(paths.index(str(self.opencode)),
+                                                paths.index(str(self.package)))
+                            else:
+                                self.assertNotIn(str(self.opencode), paths)
+
+                            brew_bin = self.linuxbrew / "bin"
+                            brew_sbin = self.linuxbrew / "sbin"
+                            if linuxbrew_present:
+                                self.assertEqual(paths.count(str(brew_bin)), 1)
+                                self.assertEqual(paths.count(str(brew_sbin)), 1)
+                                user_prefix = self.opencode if opencode_present else self.local
+                                self.assertLess(paths.index(str(user_prefix)),
+                                                paths.index(str(brew_bin)))
+                                self.assertLess(paths.index(str(brew_bin)),
+                                                paths.index(str(brew_sbin)))
+                                self.assertLess(paths.index(str(brew_sbin)),
+                                                paths.index(str(self.package)))
+                            else:
+                                self.assertNotIn(str(brew_bin), paths)
+                                self.assertNotIn(str(brew_sbin), paths)
 
     def test_local_interactive_preference_can_override_shared_order(self):
         self.opencode.mkdir(parents=True)
         local_config = self.home / "config/dotfiles"
         local_config.mkdir(parents=True)
-        (local_config / "interactive.zsh").write_text('path=("$HOME/override" $path)\n')
-        paths = self.run_shell("-lic").stdout.splitlines()
-        self.assertEqual(paths[0], str(self.home / "override"))
+        (local_config / "interactive.zsh").write_text(
+            'export DOTFILES_LOCAL_INTERACTIVE=loaded\n'
+            'path=("$HOME/override" $path)\n'
+        )
+        output = self.run_shell(
+            "-lic", 'print -r -- "$DOTFILES_LOCAL_INTERACTIVE"; print -rl -- $path'
+        ).stdout.splitlines()
+        self.assertEqual(output[0], "loaded")
+        self.assertEqual(output[1], str(self.home / "override"))
 
     def test_macos_login_restores_order_after_homebrew(self):
         self.opencode.mkdir(parents=True)
         brew = self.home / "homebrew/bin/brew"
         brew.parent.mkdir(parents=True)
-        brew.touch(mode=0o755)
+        brew.write_text("#!/bin/sh\n")
+        brew.chmod(0o755)
         profile = self.home / "darwin-profile"
         profile.write_text((ROOT / "zprofile").read_text().replace(
             "/opt/homebrew", str(self.home / "homebrew")
         ))
-        script = (f'source "{ROOT / "zshenv"}"; OSTYPE=darwin; '
+        script = (f'source "{ROOT / "zshenv"}"; path=(/usr/bin /bin $path); '
+                  f'OSTYPE=darwin; '
                   f'source "{profile}"; print -rl -- $path')
         paths = self.run_shell("-fc", script).stdout.splitlines()
         self.assertLess(paths.index(str(self.local)), paths.index(str(self.opencode)))
         self.assertLess(paths.index(str(self.opencode)), paths.index(str(brew.parent)))
+        self.assertLess(paths.index(str(brew.parent)), paths.index("/usr/bin"))
 
 
 if __name__ == "__main__":

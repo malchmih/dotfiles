@@ -15,8 +15,8 @@ if they are not yet installed.
 
 Enhanced tools keep their own names: use `rg` and `http` explicitly. Nothing here
 aliases them over `grep`, `find`, `cat`, or other familiar commands. Convenience
-aliases still require their tools: `j` needs `just`, and `restart-podman` needs
-Podman. Their presence does not make either tool a core dependency.
+aliases still require their tools: `restart-podman` needs Podman. Its presence
+does not make Podman a core dependency.
 
 ## Selected sources and update owners
 
@@ -95,7 +95,7 @@ libraries/codecs/certificates are intentionally omitted.
 
 | Group | Candidates and ownership convention |
 | --- | --- |
-| Other CLI/developer utilities | `mas` (Mac App Store helper, macOS only), and `just` if its alias is useful. Homebrew for standalone utilities. |
+| Other CLI/developer utilities | `mas` (Mac App Store helper, macOS only). Homebrew for standalone utilities. |
 | Media CLI | `ffmpeg`, `yt-dlp` through Homebrew; codec libraries are their dependencies, not recovery selections. |
 | Containers | Podman or Docker only when needed; inspect existing engine/VM ownership first. A Homebrew Docker CLI alone is **not** a working daemon. Desktop/VM/WSL engine setup is separate and manual. Do not install both merely because aliases exist. |
 | Language and Python tooling | Deno, pipx, Homebrew Python, and standalone Gradle are optional. Keep existing owners/data. The [toolchain guide](toolchains.md) describes optional standalone-mise Node/Java/CPython defaults and Homebrew-owned uv for project environments, dependencies, and CLI applications. Prefer uv for project tooling without duplicating pipx-owned commands, and project Gradle Wrappers. |
