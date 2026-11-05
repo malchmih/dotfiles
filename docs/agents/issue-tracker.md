@@ -9,7 +9,7 @@ label mapping.
 
 ## Triage contract
 
-PRs are not a request surface; `/triage` reads this setting as `no`. GitHub shares
+**PRs as a request surface: no.** `/triage` reads this setting. GitHub shares
 issue and PR numbers, so resolve an ambiguous `#<n>` with `gh pr view <n>` and
 then `gh issue view <n>`.
 

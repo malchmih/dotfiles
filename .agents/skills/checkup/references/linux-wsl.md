@@ -14,5 +14,4 @@
   inspection needs specific approval; do not control services, start an engine,
   or enumerate private workloads.
 - See the [maintenance guide](../../../../docs/maintenance.md#daily-maintenance)
-  for APT update implications. Never run package/OS updates, removals, or reboots
-  as Checkup probes.
+  for APT update implications. Do not terminate or restart WSL to validate a fix.

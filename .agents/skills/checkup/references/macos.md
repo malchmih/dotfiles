@@ -13,4 +13,4 @@
   startup or service state; sensitive arguments and managed/system data need the
   appropriate consent.
 - See the [maintenance guide](../../../../docs/maintenance.md#daily-maintenance)
-  for Apple update implications. Do not invoke update or removal paths as probes.
+  for Apple update implications.
