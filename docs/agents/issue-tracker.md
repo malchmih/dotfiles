@@ -25,8 +25,9 @@ then `gh issue view <n>`.
   `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-id>`.
   Get the blocker ID with `gh api repos/<owner>/<repo>/issues/<n> --jq .id`;
   it is the numeric database ID, not the issue number or node ID. If dependencies
-  are unavailable, use a `Blocked by: #<n>` line. The frontier is the first
-  map-ordered open child with no open blocker and no assignee.
+  are unavailable, use a `Blocked by: #<n>, #<n>` line listing every blocker.
+  The frontier is the first map-ordered open child with no open blocker and no
+  assignee.
 - Claim with `gh issue edit <n> --add-assignee @me`; this is the session's first
   write. Resolve with `gh issue comment <n> --body "<answer>"`, then
   `gh issue close <n>`, then append a gist/context link to the map's

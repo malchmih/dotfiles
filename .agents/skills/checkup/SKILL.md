@@ -37,19 +37,10 @@ assume the agent shell represents a fresh interactive shell.
 Use bounded, read-only local package/app-manager metadata, command resolution,
 targeted configuration data, and relevant startup/service or maintenance metadata.
 Check owners across managers; follow concrete leads rather than inventorying
-everything. Read shell startup files statically—never source private Local hooks
-or launch a login/interactive shell as a probe.
+everything.
 
-Only bounded, low-risk evidence collection is pre-approved. Get consent for
-broader, network, or consequential diagnostics; elevated, sensitive, or
-workload-impacting operations require separate, specific approval. A refusal is
-a coverage limit; continue only with evidence already authorized. Consent is for
-evidence only and never authorizes remediation.
-
-Minimize local/private reads. Exclude credentials, personal content, histories,
-and private project contents; sanitize external queries and output. A copy's age,
-duplicate installation, lack of repo references, or absence from PATH alone does
-not establish it is safe to remove.
+Follow the inspection rules above for consent and privacy. A refusal is a
+coverage limit; continue only with evidence already authorized.
 
 ## Advise and stop
 
@@ -63,5 +54,5 @@ evidenced within the stated scope—not that the whole machine is healthy.
 Report in chat by default. Write a file only if requested, after agreeing on its
 path and privacy; keep it outside repository documentation, preferably outside
 the checkout. Provide exact remediation commands only when asked, clearly marked
-as proposed and not executed. Checkup never changes the machine or repository;
-do not create issues, commits, or inventories. Stop after reporting.
+as proposed and not executed. Do not create issues, commits, or inventory files;
+stop after reporting.
