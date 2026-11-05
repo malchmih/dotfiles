@@ -115,7 +115,7 @@ should own each command.
 
 | Component | Selected source / update owner on both platforms |
 | --- | --- |
-| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); daily `up` offers a separate approval for `mise self-update` (also updates installed plugins by default) |
+| mise | [Official standalone installer](https://mise.jdx.dev/installing-mise.html#mise-run); daily `up` includes `mise self-update` in its shared approval (also updates installed plugins by default) |
 | uv / uvx | Supported [Homebrew formula](https://docs.astral.sh/uv/getting-started/installation/#homebrew); `brew upgrade uv`, not `uv self update` |
 | Node / npm | mise's built-in Node backend; upstream Node distributions |
 | Java / javac | mise's built-in Java backend; Eclipse Temurin GA JDK distributions (not JRE-only) |

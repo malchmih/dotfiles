@@ -36,10 +36,11 @@ maintenance_main() {
             [[ $# -eq 1 ]] || { printf 'Usage: %s [--help]\n' "$action" >&2; return 1; }
             if [[ $action == up ]]; then
                 printf '%s\n' 'Usage: up [--help]' \
-                    'Refresh and review native listings; approve mise self-update and installed inventories separately.' \
+                    'Refresh and review native listings; approve eligible updates once with [Y/n].' \
                     'Inventories: Homebrew formulae/casks, uv tools, pipx apps, and Ubuntu/Debian APT packages.' \
                     'Standalone mise uses native latest-stable self-update and updates installed plugins by default.' \
-                    'Exact mise/plugin changes are UNKNOWN until execution; its separate [y/N] approval runs mise self-update --yes.' \
+                    'Only active standalone mise at ~/.local/bin/mise is eligible; other installations are skipped.' \
+                    'Exact mise/plugin changes are UNKNOWN until execution; shared approval runs mise self-update --yes.' \
                     'Mise failures are reported; independent inventory work can continue. No runtime selection is done.' \
                     'macOS updates are listed only. Normal cask app quits/restarts and built-in brew cleanup are allowed.' \
                     'Refresh may update Homebrew itself before approval. uv/pipx exact changes are unknown.'
@@ -62,7 +63,7 @@ maintenance_main() {
     fi
 
     local platform failed=0 brew_ready=0 apt_ready=0 casks=0 uv_ready=0 pipx_ready=0 mise_ready=0
-    local needs_sudo=0 installed_casks
+    local needs_sudo=0 installed_casks mise="$HOME/.local/bin/mise" actual_mise
     case "$(uname -s)" in
         Darwin) platform=macos ;;
         Linux)
@@ -101,10 +102,11 @@ maintenance_main() {
         printf '%s\n' 'SKIP: Homebrew not on PATH.'
     fi
     if [[ $action == up ]]; then
-        if command -v mise >/dev/null; then
+        actual_mise=$(command -v mise || true)
+        if [[ -f "$mise" && -x "$mise" && ! -L "$mise" && -n "$actual_mise" && "$actual_mise" -ef "$mise" ]]; then
             mise_ready=1
         else
-            printf '%s\n' 'SKIP: mise not on PATH; standalone self-update unavailable.'
+            printf '%s\n' 'SKIP: mise self-update requires active standalone ~/.local/bin/mise; see docs/toolchains.md.'
         fi
     fi
     if [[ $platform == linux ]]; then
@@ -180,16 +182,9 @@ maintenance_main() {
 
     if [[ $action == up && $mise_ready == 1 ]]; then
         printf '\n%s\n' 'mise self-update: latest stable by default; installed plugins are updated too. Exact changes are UNKNOWN until execution.'
-        if maintenance_confirm 'Approve standalone mise self-update? [y/N] ' 0; then
-            maintenance_run \
-                'mise: self-update standalone executable and installed plugins (exact changes UNKNOWN).' \
-                mise self-update --yes || :
-        else
-            printf '\n%s\n' 'Cancelled; standalone mise self-update was not run.'
-        fi
     fi
 
-    if [[ $brew_ready == 0 && $apt_ready == 0 && $uv_ready == 0 && $pipx_ready == 0 ]]; then
+    if [[ $brew_ready == 0 && $apt_ready == 0 && $uv_ready == 0 && $pipx_ready == 0 && $mise_ready == 0 ]]; then
         printf '\n%s\n' 'No eligible changes to approve.'
     else
         printf '\n'
@@ -199,6 +194,11 @@ maintenance_main() {
             return
         fi
         if [[ $action == up ]]; then
+            if [[ $mise_ready == 1 ]]; then
+                maintenance_run \
+                    'mise: self-update standalone executable and installed plugins (exact changes UNKNOWN).' \
+                    "$mise" self-update --yes || :
+            fi
             if [[ $brew_ready == 1 ]]; then
                 maintenance_run 'Homebrew: upgrade all eligible formulae (built-in cleanup allowed).' brew upgrade --formula --yes || :
                 if [[ $casks == 1 ]]; then

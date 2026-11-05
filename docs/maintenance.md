@@ -21,7 +21,7 @@ scripts work from Bash/Zsh without OMZ aliases/plugins.
 
 ```sh
 up --help
-up                           # refresh/review, optionally approve mise, then approve inventories
+up                           # refresh/review, then approve eligible updates once
 ```
 
 This is the morning entry point across macOS and Ubuntu/Debian, including WSL.
@@ -34,7 +34,7 @@ not just this repository's core selections:
 | Homebrew casks (macOS, when installed) | `brew outdated --cask` | `brew upgrade --cask --yes` |
 | uv tools | `uv tool list`; exact upgrade changes **unknown** | `uv tool upgrade --all` |
 | pipx apps | `pipx list`; exact upgrade changes **unknown** | `pipx upgrade-all` |
-| Standalone mise + installed plugins | Exact release/plugin changes **unknown**; there is no frozen preview | After separate approval: `mise self-update --yes` |
+| Standalone mise + installed plugins | Exact release/plugin changes **unknown**; there is no frozen preview | After shared approval: `mise self-update --yes` |
 | APT (Ubuntu/Debian) | `apt-get --simulate upgrade --no-remove` after index refresh | `sudo apt-get upgrade --no-remove --yes` |
 | macOS software updates | `softwareupdate --list` | **No installation** |
 
@@ -48,7 +48,7 @@ not just this repository's core selections:
   or a cask installer may request authorization during an upgrade if needed.
   Brew itself is never run as root. Credential timeout or installer policy can
   still cause later prompts; no password is captured or keepalive run.
-- **One approval covers eligible groups**, including uv/pipx's disclosed unknown
+- **One approval covers eligible groups**, including mise/uv/pipx's disclosed unknown
   changes. The prompt defaults to Yes (`[Y/n]`): Enter or `y`/`yes` (also
   `Y`/`YES`) proceeds. A piped blank line also approves; EOF, `n`/`no`, or any
   unrecognized answer cancels.
@@ -56,18 +56,20 @@ not just this repository's core selections:
   listings, not a custom selectable package plan or a frozen transaction.
   Inventories, metadata, and dependency resolution can change between preview
   and execution.
-- **Mise self-update has a separate, default-No approval.** After listings and
-  before the inventory approval, `up` offers this step when `mise` is on PATH.
-  Only `y`/`yes` (also `Y`/`YES`) approves; Enter, EOF, `n`/`no`, or any other
-  answer declines. The prompt is independent: declining mise does not cancel
-  inventory approval, and approving mise does not approve inventory upgrades.
-  After approval only, the wrapper runs native `mise self-update --yes`; that
-  native flag carries the explicit wrapper approval and avoids a second prompt.
+- **Standalone mise uses the shared approval.** `up` includes this step only
+  when `$HOME/.local/bin/mise` is a regular executable (not a symlink) and the
+  `mise` selected first on PATH refers to that file, matching `setup-toolchains`.
+  Missing, shadowed, or other installations are reported as a non-failing `SKIP`;
+  `up` does not migrate installations or guess ownership. Homebrew-owned mise
+  remains covered by the ordinary Homebrew formula inventory, not self-update.
+  See [toolchains](toolchains.md#transition-from-homebrew-owned-mise) for the
+  separate, one-time migration to standalone mise.
+  After the shared approval only, the wrapper runs native `mise self-update --yes`
+  using the checked standalone path; that flag carries the wrapper approval and
+  avoids a second prompt. Declining approval skips mise and all other upgrades.
   No version is pinned and plugins are not disabled, so mise uses its native
   latest-stable behavior and updates installed plugins by default. Exact release
   and plugin changes may be unknown until execution; this is not a frozen preview.
-  This step is for standalone mise. A package-managed build may reject native
-  self-update; that failure is reported and inventory work can still continue.
 - **Use native default update policies.** Pins/exclusions remain effective. No
   `--greedy`, force, prerelease, full-upgrade, or distribution-release-upgrade
   behavior is added. Normal cask behavior can quit/restart apps or otherwise
@@ -80,9 +82,9 @@ not just this repository's core selections:
   formula preview skips Homebrew upgrades). Failed sudo validation skips APT
   but permits independent unprivileged work. Failures are labeled and result in
   nonzero exit status, even if other groups succeed or you later cancel. There is
-  no rollback. A missing `mise` is reported as `SKIP`; a failed mise self-update
-  is labeled and contributes to nonzero status without blocking the later
-  inventory approval/work. Missing optional managers are skipped; missing native
+  no rollback. An ineligible standalone `mise` is reported as `SKIP`; a failed mise
+  self-update is labeled and contributes to nonzero status without blocking other
+  approved updates. Missing optional managers are skipped; missing native
   APT is an error.
 - **Scope exclusions:** no App Store apps, runtime selection, project dependencies,
   dotfiles pull, shell-framework update, Snap/Flatpak/vendor updater, or Windows-host
