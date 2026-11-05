@@ -81,8 +81,9 @@ Native mise apply installs missing selections and leaves already-installed
 versions alone; it does not upgrade these on repeat runs. No broad OS/package
 upgrade is needed to try the features. See the
 [source/update-owner table](core-tools.md#selected-sources-and-update-owners).
-For deliberate whole-inventory user-tool upgrades, see the separate
-[maintenance commands](maintenance.md).
+For broad Daily maintenance, run [`topgrade`](maintenance.md#daily-maintenance);
+it follows upstream detection and can include shell integrations beyond these
+targeted Homebrew updates.
 
 With OMZ present, its normal history settings remain untouched: default
 `~/.zsh_history`, minimum `HISTSIZE=50000` / `SAVEHIST=10000`, extended timestamps,
