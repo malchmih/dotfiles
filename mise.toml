@@ -17,7 +17,7 @@
 "apt:git" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 "apt:vim" = { version = "latest", os = ["linux/x64", "linux/arm64"] }
 
-# Optional repository-development tool used only by the explicit check task.
+# Optional runtime used only by explicit repository tasks.
 [tools]
 python = "latest"
 
@@ -58,6 +58,11 @@ done
 printf '%s\n' 'Running isolated shell regression tests...'
 PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -v
 '''
+
+# Model choices remain local; ordinary bootstrap and dot apply never run this.
+[tasks.sync-secondary-model]
+description = "Sync the local secondary model pair to OpenCode and Implement Loop"
+run = "python scripts/sync-secondary-model.py"
 
 # A process ZSH override keeps the checkout aligned with the shell preference.
 [vars]

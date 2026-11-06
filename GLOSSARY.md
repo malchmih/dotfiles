@@ -19,6 +19,9 @@ _Avoid_: All configuration
 **Local configuration**:
 Optional machine-specific or non-public additions outside the shared configuration. Its preservation is not part of the baseline recovery expectation.
 
+**Secondary model**:
+A per-user model-and-variant pair shared by delegated OpenCode work and Implement Loop's OpenCode execution, independent of the model chosen for normal interactive sessions.
+
 **Checkup**:
 An evidence-based assessment of the current machine's software and setup, covering correctness, improvement opportunities, core candidates, and cleanup candidates. Its outcome is advice, not changes to the environment.
 

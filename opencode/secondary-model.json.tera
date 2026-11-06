@@ -1,0 +1,9 @@
+{
+{% if vars.opencode_new_config %}
+  "$schema": "https://opencode.ai/config.json",
+{% endif %}
+  "agents": {
+    "general": { "model": "{{ vars.secondary_model }}#{{ vars.secondary_variant }}" },
+    "explore": { "model": "{{ vars.secondary_model }}#{{ vars.secondary_variant }}" }
+  }
+}

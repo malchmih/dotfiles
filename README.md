@@ -98,7 +98,8 @@ files; this overview is not a full machine inventory.
   CLI/TUI preferences whether or not the optional client is installed. The
   client, credentials, provider choices, and model configuration remain local.
   OpenCode may write to linked preference sources; review `git diff` before
-  committing changes.
+  committing changes. An opt-in [secondary model sync](docs/secondary-model.md)
+  shares a local model/variant pair with its built-in subagents and Implement Loop.
 
 These are live links into the checkout: editing a shared source affects new
 sessions. Optional **Local configuration** is not versioned here. For Daily
@@ -110,6 +111,7 @@ Repository checks are separate from Core Recovery and are described there too.
 
 - [Shell and Local configuration](docs/shell.md)
 - [Maintenance and toolchains](docs/maintenance.md)
+- [Sync the secondary model](docs/secondary-model.md)
 - [Glossary](GLOSSARY.md)
 
 This repository retains the public-domain [license](LICENSE.md).
