@@ -13,6 +13,7 @@ usable when they are absent.
 | --- | --- |
 | Emacs editing | `Ctrl-A` / `Ctrl-E` move to line start/end; `Ctrl-U` kills the line; `Ctrl-K` kills to the end; `Ctrl-W` kills the previous word; `Ctrl-Y` yanks. |
 | Suggestions | A dim suffix suggests a command from local history. At the end of input, Right Arrow or `Ctrl-F` accepts it; Enter is still required to run it. |
+| mise completion | Tab completes mise commands and supported arguments. First-time completion generation runs in the background and may not be ready immediately. |
 | fzf history | `Ctrl-R` searches history; Enter inserts the selected command for editing, Escape cancels. |
 | fzf files | `Ctrl-T` inserts paths; Tab selects multiple entries, Enter accepts, Escape cancels. |
 | fzf directories and completion | `Alt-C` changes into a selected directory. With a supported command, `**` then Tab starts fuzzy path completion. Some terminals intercept Alt/Option; try Escape then `c`. |
@@ -28,14 +29,19 @@ Only interactive shells load `.zshrc`; `.zshenv` and `.zprofile` do not start
 interactive features. In shared `.zshrc`, the order is:
 
 1. Base aliases and Emacs bindings, then awesomepanda and OMZ update settings.
-2. If the OMZ initializer exists, OMZ loads `common-aliases` and `git`; `brew`
-   and `gradle` are conditional on their commands, and `ubuntu` is conditional
-   on Ubuntu. OMZ owns availability of its bundled plugin files.
+   When Homebrew is available, its existing completion directory is added to
+   `fpath` before OMZ initializes completion, covering packaged tools such as
+   `gh`, `rg`, `brew`, and `topgrade` without additional plugins.
+2. If the OMZ initializer exists, OMZ loads `common-aliases` and `git`; `mise`,
+   `brew`, and `gradle` are conditional on their executables, and `ubuntu` is
+   conditional on Ubuntu. The `mise` plugin owns activation and cached command
+   completion, refreshing it in the background when missing or older than the
+   mise binary. Do not separately activate mise or install another mise
+   completion provider. OMZ owns availability of its bundled plugin files.
 3. OMZ's `fzf` plugin loads fzf's shell integration when fzf is present and the
    shell has a terminal. It owns the standard `Ctrl-R` binding; do not also
    source `~/.fzf.zsh` or run `eval "$(fzf --zsh)"`.
-4. mise activation runs when mise is available, followed by Homebrew's
-   autosuggestions script when readable.
+4. Homebrew's autosuggestions script loads when readable.
 5. Local `interactive.zsh` is the final preference phase for aliases, bindings,
    styles, and PATH.
 6. Homebrew syntax highlighting loads last so it sees local widget definitions.
@@ -44,7 +50,8 @@ The OMZ automatic updater remains enabled. Topgrade can also update detected
 shell integrations; Homebrew owns the separately packaged additions (see
 [maintenance](maintenance.md#daily-maintenance)).
 
-If OMZ is absent, base Zsh editing, aliases, and Local configuration still load.
+If OMZ is absent, base Zsh editing, aliases, and Local configuration still load,
+but mise activation and completion do not.
 If fzf or its terminal integration is unavailable, the OMZ fzf plugin is skipped;
 `Ctrl-R` falls back to Zsh/OMZ history search. Available packaged suggestions and
 highlighting can still load without OMZ; scripts are skipped when missing or
