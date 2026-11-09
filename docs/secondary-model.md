@@ -21,9 +21,10 @@ The task uses mise's Python runtime and native templated merges; it is never
 part of bootstrap, ordinary `mise dot apply`, or shell startup.
 
 Sync sets the user-level OpenCode `general` and `explore` model selections and
-Implement Loop's OpenCode model/variant. It preserves unrelated settings and
-comments, including the interactive model and Copilot settings. Native project
-and CLI overrides still apply. Neither application needs mise at runtime.
+Implement Loop's root-level `model` and `variant`. It preserves unrelated settings
+and comments, including the interactive model and Copilot settings. OpenCode's
+native project and CLI overrides still apply. Neither application needs mise at
+runtime.
 
 Targets follow `XDG_CONFIG_HOME`. Sync updates an existing `opencode.json` or
 `opencode.jsonc`, creating `opencode.jsonc` if neither exists, and updates or

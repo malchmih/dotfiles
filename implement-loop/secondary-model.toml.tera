@@ -1,3 +1,2 @@
-[execution.harnesses.opencode]
 model = "{{ vars.secondary_model }}"
 variant = "{{ vars.secondary_variant }}"
